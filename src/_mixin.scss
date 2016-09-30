@@ -1,0 +1,202 @@
+@mixin hidden {
+	display: none;
+	visibility: hidden;
+}
+
+
+// PREFIX shadow( horizontal, vertical, blur radius, spread radius, color+opacity)
+// @include shadow(2px 0 30px 0 rgba(0,0,0,.75));
+@mixin shadow($shadow...) {
+	-webkit-box-shadow: $shadow;
+	-moz-box-shadow: $shadow;
+	box-shadow: $shadow;
+}
+
+
+// PREFIX transition: [property] [duration] [timing-function] [delay], (next property);
+// @include transition(all  .3s  ease-in-out  0s);
+@mixin transition ( $transition... ) {
+	// Setting the default value
+	@if length($transition) == 0 {
+		$transition: all 0s ease-in-out 0s;
+	}
+
+	-webkit-transition: $transition;
+	-moz-transition: $transition;
+	-o-transition: $transition;
+	transition: $transition;
+}
+
+// PREFIX Animation definition
+// @include animeDef ( name ) { code }
+@mixin keyframes ( $animationname ) {
+	@-webkit-keyframes $animationname { @content }
+	@-moz-keyframes $animationname { @content }
+	@-o-keyframes $animationname { @content }
+	@keyframes $animationname { @content }
+}
+
+// PREFIX Animation call
+// @include animation (name 2s ease-in-out 0s reverse/alternate infinite);
+@mixin animation ( $animation... ) {
+    @if length($animation) == 0 {
+		$transition: all 0s ease-in-out 0s alternate 1;
+	}
+
+	-webkit-animation: $animation;
+	-moz-animation: $animation;
+	-o-animation: $animation;
+	animation: $animation;
+}
+
+// PREFIX transform
+@mixin transform($transforms) {
+    -moz-transform: $transforms;
+    -o-transform: $transforms;
+    -ms-transform: $transforms;
+    -webkit-transform: $transforms;
+    transform: $transforms;
+}
+
+// PREFIX clip-path
+@mixin clip-path($clip) {
+    -webkit-clip-path: $clip;
+    -moz-clip-path: $clip;
+    -ms-clip-path: $clip;
+    clip-path: $clip;
+}
+/*------------------------ FLEXBOX PREFIX ------------------------*/
+
+// PREFIX flexbox:
+// width: 100%; height: 100%;
+@mixin flexbox {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flexbox;
+	display: flex;
+}
+
+// PREFIX flex-flow: <direction: [row] | column> & <wrap: [nowrap] | wrap>
+@mixin flex-flow($values: (row nowrap)) {
+	-webkit-flex-flow: $values;
+	-moz-flex-flow: $values;
+	-ms-flex-flow: $values;
+	flex-flow: $values;
+}
+
+// PREFIX order: [0] | integer
+@mixin order($int: 0) {
+	-webkit-box-ordinal-group: $int + 1;
+	-webkit-order: $int;
+	-moz-order: $int;
+	-ms-flex-order: $int;
+	order: $int;
+}
+
+// PREFIX flex-grow: integer
+@mixin flex-grow($int: 0) {
+	-webkit-box-flex: $int;
+	-webkit-flex-grow: $int;
+	-moz-flex-grow: $int;
+	-ms-flex-positive: $int;
+	flex-grow: $int;
+}
+
+// PREFIX flex: none(0 1 auto) | flex-grow flex-shrink || <flex-basis>
+@mixin flex($fg: 0, $fs: 1, $fb: auto) {
+
+	// Set a variable to be used by box-flex properties
+	$fg-boxflex: $fg;
+
+	// Box-Flex only supports a flex-grow value so let's grab the
+	// first item in the list and just return that.
+	@if type-of($fg) == 'list' {
+		$fg-boxflex: nth($fg, 1);
+	}
+
+	-webkit-box-flex: $fg-boxflex;
+	-webkit-flex: $fg $fs $fb;
+	-moz-box-flex: $fg-boxflex;
+	-moz-flex: $fg $fs $fb;
+	-ms-flex: $fg $fs $fb;
+	flex: $fg $fs $fb;
+}
+
+// PREFIX justify-content: [flex-start] | flex-end | center | space-between | space-around
+@mixin justify-content($value: flex-start) {
+	@if $value == flex-start {
+		-webkit-box-pack: start;
+		-ms-flex-pack: start;
+	} @else if $value == flex-end {
+		-webkit-box-pack: end;
+		-ms-flex-pack: end;
+	} @else if $value == space-between {
+		-webkit-box-pack: justify;
+		-ms-flex-pack: justify;
+	} @else if $value == space-around {
+		-ms-flex-pack: distribute;
+	} @else {
+		-webkit-box-pack: $value;
+		-ms-flex-pack: $value;
+	}
+	-webkit-justify-content: $value;
+	-moz-justify-content: $value;
+	justify-content: $value;
+}
+
+// PREFIX align-items: [stretch] | flex-start | flex-end | center | baseline
+@mixin align-items($value: stretch) {
+	@if $value == flex-start {
+		-webkit-box-align: start;
+		-ms-flex-align: start;
+	} @else if $value == flex-end {
+		-webkit-box-align: end;
+		-ms-flex-align: end;
+	} @else {
+		-webkit-box-align: $value;
+		-ms-flex-align: $value;
+	}
+	-webkit-align-items: $value;
+	-moz-align-items: $value;
+	align-items: $value;
+}
+
+// PREFIX align-self: [auto] | flex-start | flex-end | center | baseline | stretch
+@mixin align-self($value: auto) {
+	-webkit-align-self: $value;
+	-moz-align-self: $value;
+	@if $value == flex-start {
+		-ms-flex-item-align: start;
+	} @else if $value == flex-end {
+		-ms-flex-item-align: end;
+	} @else {
+		-ms-flex-item-align: $value;
+	}
+	align-self: $value;
+}
+
+// PREFIX align-content: [stretch] | flex-start | flex-end | center | space-between | space-around
+@mixin align-content($value: stretch) {
+	-webkit-align-content: $value;
+	-moz-align-content: $value;
+	@if $value == flex-start {
+		-ms-flex-line-pack: start;
+	} @else if $value == flex-end {
+		-ms-flex-line-pack: end;
+	} @else {
+		-ms-flex-line-pack: $value;
+	}
+	align-content: $value;
+}
+
+// MIXIN flexie je združen flexbox, flex-flow justif-content, align-items
+//  - flex-flow: <direction: [row] | column> & <wrap: [nowrap] | wrap>
+//  - justify-content: [flex-start] | flex-end | center | space-between | space-around
+//  - align-items: [stretch] | flex-start | flex-end | center | baseline
+@mixin flexie($flow, $justify, $align) {
+	@include flexbox;
+	@include flex-flow($flow);
+	@include justify-content($justify);
+	@include align-items($align);
+}

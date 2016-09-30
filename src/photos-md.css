@@ -1,0 +1,420 @@
+/*------------------------ FLEXBOX PREFIX ------------------------*/
+@font-face {
+  font-family: 'icon';
+  src: url("/assets/style/icons/fonts/icon.eot?s37nr2");
+  src: url("/assets/style/icons/fonts/icon.eot?s37nr2#iefix") format("embedded-opentype"), url("/assets/style/icons/fonts/icon.ttf?s37nr2") format("truetype"), url("/assets/style/icons/fonts/icon.woff?s37nr2") format("woff"), url("/assets/style/icons/fonts/icon.svg?s37nr2#icon") format("svg");
+  font-weight: normal;
+  font-style: normal; }
+
+/* line 12, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; }
+
+/* line 27, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-play:before {
+  content: "\e907"; }
+
+/* line 30, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-back:before {
+  content: "\e906"; }
+
+/* line 33, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-maximize:before {
+  content: "\e902"; }
+
+/* line 36, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-expand:before {
+  content: "\e903"; }
+
+/* line 39, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-menu:before {
+  content: "\e900"; }
+
+/* line 42, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-arrow-left:before {
+  content: "\e904"; }
+
+/* line 45, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-arrow-down:before {
+  content: "\e901"; }
+
+/* line 48, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/icons/style.css */
+.icon-arrow-right:before {
+  content: "\e905"; }
+
+/* line 8, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+html.lock, body.lock {
+  overflow: hidden; }
+
+/* line 13, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+#galerija {
+  padding-top: 3em;
+  padding-bottom: 5em;
+  width: 100vw;
+  height: auto;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-flow: row wrap;
+  -moz-flex-flow: row wrap;
+  -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  -moz-justify-content: center;
+  justify-content: center;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  -webkit-align-items: flex-start;
+  -moz-align-items: flex-start;
+  align-items: flex-start;
+  /*&.video {
+			> div {
+				position: relative;
+				padding-bottom: 56.25%;
+				height: 0;
+				overflow: hidden;
+				max-width: 100%;
+
+				> iframe {
+					position: relative;
+					padding-bottom: 56.25%;
+					height: 0;
+					overflow: hidden;
+					max-width: 100%;
+				}
+			}
+		}*/ }
+  @media screen and (max-width: 705px) {
+    /* line 13, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-flex-flow: column wrap;
+      -moz-flex-flow: column wrap;
+      -ms-flex-flow: column wrap;
+      flex-flow: column wrap;
+      -webkit-box-pack: start;
+      -ms-flex-pack: start;
+      -webkit-justify-content: flex-start;
+      -moz-justify-content: flex-start;
+      justify-content: flex-start;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; } }
+  /* line 26, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija .filter {
+    width: 100%;
+    padding: 2em;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-flow: row nowrap;
+    -moz-flex-flow: row nowrap;
+    -ms-flex-flow: row nowrap;
+    flex-flow: row nowrap;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    -moz-justify-content: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    align-items: center; }
+    /* line 34, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija .filter div {
+      -webkit-box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
+      -moz-box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
+      box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
+      border-radius: 0px;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-flex-flow: row nowrap;
+      -moz-flex-flow: row nowrap;
+      -ms-flex-flow: row nowrap;
+      flex-flow: row nowrap;
+      -webkit-box-pack: center;
+      -ms-flex-pack: center;
+      -webkit-justify-content: center;
+      -moz-justify-content: center;
+      justify-content: center;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; }
+    /* line 42, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija .filter button {
+      font-size: 1rem;
+      font-weight: 600;
+      background: white;
+      outline: none;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-color: transparent;
+      padding: 5px 20px;
+      margin: 0;
+      -webkit-transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      -moz-transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      -o-transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+      /* line 56, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .filter button:first-of-type {
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px; }
+      /* line 60, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .filter button:last-of-type {
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px; }
+      /* line 65, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .filter button:focuse {
+        outline: none; }
+      /* line 69, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .filter button:hover {
+        background-color: #f2f2f2; }
+      /* line 75, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .filter button.active {
+        background-color: #ebebeb; }
+        /* line 78, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .filter button.active:not(:first-of-type) {
+          border-left: 1px solid rgba(0, 0, 0, 0.2); }
+        /* line 81, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .filter button.active:not(:last-of-type) {
+          border-right: 1px solid rgba(0, 0, 0, 0.2); }
+  /* line 89, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija .galerija-dimmer.close, #galerija .galerija-controler.close {
+    display: none;
+    visibility: hidden; }
+  /* line 93, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija .galerija-dimmer.open, #galerija .galerija-controler.open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0; }
+  /* line 104, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija .galerija-dimmer.open {
+    background-color: #000;
+    z-index: 30; }
+  /* line 110, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija .galerija-controler.open {
+    z-index: 40;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-flow: column nowrap;
+    -moz-flex-flow: column nowrap;
+    -ms-flex-flow: column nowrap;
+    flex-flow: column nowrap;
+    -webkit-box-pack: start;
+    -ms-flex-pack: start;
+    -webkit-justify-content: flex-start;
+    -moz-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    align-items: center; }
+    /* line 115, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija .galerija-controler.open .galerija-header {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 1 3.5em;
+      -moz-box-flex: 0;
+      -moz-flex: 0 1 3.5em;
+      -ms-flex: 0 1 3.5em;
+      flex: 0 1 3.5em;
+      width: 100%;
+      background: linear-gradient(0deg, transparent, rgba(0, 0, 0, 0.6));
+      color: white;
+      font-weight: 800;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-flex-flow: row nowrap;
+      -moz-flex-flow: row nowrap;
+      -ms-flex-flow: row nowrap;
+      flex-flow: row nowrap;
+      -webkit-box-pack: start;
+      -ms-flex-pack: start;
+      -webkit-justify-content: flex-start;
+      -moz-justify-content: flex-start;
+      justify-content: flex-start;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; }
+      /* line 125, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .galerija-controler.open .galerija-header span {
+        color: white;
+        margin: 5px 1em;
+        padding: .8em;
+        border-radius: 2em; }
+        /* line 131, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-header span:hover {
+          cursor: pointer; }
+        /* line 134, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-header span:active {
+          background: #555; }
+    /* line 140, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija .galerija-controler.open .galerija-arrows {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0 1 100%;
+      -moz-box-flex: 0;
+      -moz-flex: 0 1 100%;
+      -ms-flex: 0 1 100%;
+      flex: 0 1 100%;
+      width: 100%;
+      z-index: 50;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-flex-flow: row no-wrap;
+      -moz-flex-flow: row no-wrap;
+      -ms-flex-flow: row no-wrap;
+      flex-flow: row no-wrap;
+      -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+      -webkit-justify-content: space-between;
+      -moz-justify-content: space-between;
+      justify-content: space-between;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; }
+      /* line 146, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+      #galerija .galerija-controler.open .galerija-arrows div {
+        opacity: 0;
+        -webkit-transition: opacity 0.1s ease-in-out;
+        -moz-transition: opacity 0.1s ease-in-out;
+        -o-transition: opacity 0.1s ease-in-out;
+        transition: opacity 0.1s ease-in-out; }
+        /* line 152, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-arrows div:first-of-type {
+          padding: 30vh 30vw 30vh 0; }
+        /* line 155, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-arrows div:last-of-type {
+          padding: 30vh 0 30vh 30vw; }
+        /* line 158, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-arrows div:hover {
+          opacity: 1; }
+        /* line 163, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija .galerija-controler.open .galerija-arrows div span {
+          font-size: 2.5em;
+          margin: 0.3125em;
+          padding: 0.3125em;
+          color: white;
+          border-radius: 2.5em;
+          background: rgba(66, 66, 66, 0.46); }
+          @media screen and (max-width: 27.5em) {
+            /* line 163, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+            #galerija .galerija-controler.open .galerija-arrows div span {
+              font-size: 1.5em;
+              margin: 0.1875em;
+              padding: 0.1875em;
+              border-radius: 1.5em; } }
+          /* line 180, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+          #galerija .galerija-controler.open .galerija-arrows div span:hover {
+            cursor: pointer; }
+  /* line 188, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+  #galerija figure {
+    height: 15rem;
+    max-width: 90vw;
+    position: relative;
+    overflow: hidden;
+    margin: 5px;
+    -webkit-box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, 0.2);
+    -webkit-transition: box-shadow 0.3s ease-in-out, transform 0s linear, opacity 0.4s ease-in-out;
+    -moz-transition: box-shadow 0.3s ease-in-out, transform 0s linear, opacity 0.4s ease-in-out;
+    -o-transition: box-shadow 0.3s ease-in-out, transform 0s linear, opacity 0.4s ease-in-out;
+    transition: box-shadow 0.3s ease-in-out, transform 0s linear, opacity 0.4s ease-in-out; }
+    /* line 204, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure:hover:not(.zoom) {
+      background-color: transparent;
+      -webkit-box-shadow: 0px 0px 0px transparent;
+      -moz-box-shadow: 0px 0px 0px transparent;
+      box-shadow: 0px 0px 0px transparent;
+      cursor: pointer;
+      /* tablet performance issue */ }
+      @media screen and (min-width: 1600px) {
+        /* line 204, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+        #galerija figure:hover:not(.zoom) {
+          transform: scale(0.98);
+          -webkit-transition: transform 0.2s ease-out;
+          -moz-transition: transform 0.2s ease-out;
+          -o-transition: transform 0.2s ease-out;
+          transition: transform 0.2s ease-out; } }
+    /* line 224, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure.zoom img {
+      object-fit: contain;
+      object-position: center; }
+    /* line 230, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure.hide, #galerija figure.show {
+      opacity: 0; }
+    /* line 235, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure div {
+      height: 100%;
+      margin: 0;
+      padding: 0; }
+    /* line 242, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure img {
+      height: 100%;
+      -webkit-transition: all 0.3s ease-in-out;
+      -moz-transition: all 0.3s ease-in-out;
+      -o-transition: all 0.3s ease-in-out;
+      transition: all 0.3s ease-in-out; }
+    /* line 248, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure figcaption {
+      background-color: #fff;
+      position: absolute;
+      padding: 3px 8px;
+      width: 100%;
+      bottom: 0;
+      left: 0;
+      box-sizing: border-box;
+      -webkit-transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+      -moz-transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+      -o-transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out 0.1s;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out 0.1s; }
+    /* line 259, C:/Xampp/htdocs/Projects/_plugins/photos-md/src/photos-md.scss */
+    #galerija figure a, #galerija figure p {
+      text-align: left justify;
+      font-size: 12px; }
+
+/*# sourceMappingURL=photos-md.css.map */
