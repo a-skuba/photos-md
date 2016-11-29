@@ -171,7 +171,7 @@ var photosMd = {
 	'translate': function (el) {
 		/* izračuna center slike in center viewporta, ter ju odšteje, nato pa doda še preostanek screena da je slika na sredini -- MYSTIC SHIT :P*/
 		return {
-			'x': -((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + (el.scale.y < el.scale.x ? (this.viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) + 1,
+			'x': (el.scale.y < el.scale.x ? (this.viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 1,
 			'y': (el.scale.y > el.scale.x ? (this.viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 1
 		};
 	},
