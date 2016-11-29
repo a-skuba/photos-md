@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icon';
-  src:  url('/assets/style/icons/fonts/icon.eot?s37nr2');
-  src:  url('/assets/style/icons/fonts/icon.eot?s37nr2#iefix') format('embedded-opentype'),
-    url('/assets/style/icons/fonts/icon.ttf?s37nr2') format('truetype'),
-    url('/assets/style/icons/fonts/icon.woff?s37nr2') format('woff'),
-    url('/assets/style/icons/fonts/icon.svg?s37nr2#icon') format('svg');
+  src:  url('icons/fonts/icon.eot?k7q0vs');
+  src:  url('icons/fonts/icon.eot?k7q0vs#iefix') format('embedded-opentype'),
+    url('icons/fonts/icon.ttf?k7q0vs') format('truetype'),
+    url('icons/fonts/icon.woff?k7q0vs') format('woff'),
+    url('icons/fonts/icon.svg?k7q0vs#icon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -24,28 +24,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-play:before {
-  content: "\e907";
-}
 .icon-back:before {
   content: "\e906";
-}
-.icon-maximize:before {
-  content: "\e902";
-}
-.icon-expand:before {
-  content: "\e903";
-}
-.icon-menu:before {
-  content: "\e900";
 }
 .icon-arrow-left:before {
   content: "\e904";
 }
-.icon-arrow-down:before {
-  content: "\e901";
-}
 .icon-arrow-right:before {
-  content: "\e905";
+  content: "\e908";
 }
 
