@@ -1,3 +1,10 @@
+// ==========================================================================
+// photosMd
+// photos-md.js v2.0
+// https://github.com/anejskubic/photos-md
+// License: The MIT License (MIT)
+// ==========================================================================
+
 var photosMd = {
 // SETTINGS
 	'settings': {
@@ -5,18 +12,60 @@ var photosMd = {
 		'transition': 500,	// animation and transition duration
 		'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
 		'debug': 0,
-		'touch': true,		// enable touch gestures
-		'tMinX': 30,
-		'tMaxX': 30,
-		'tMinY': 50,
-		'tMaxY': 60,
-		'create': []		//
+		'touch': {
+            enable: true,   // enable touch gestures
+            minX: 30,
+            maxX: 30,
+            minY: 50,
+            maxY: 60,
+        },
+		'create': [],
+        // MERGE settings
+        'merge': function (userSettings) {
+        // first merge debug, so logs can be done properly
+            if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
+                this.debug = 1;
+            }
+            if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
+
+        // spin through array and merge one by one
+            for (var key in userSettings) {
+
+            // test if both has the key property
+                if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
+
+                // test for id
+                    if (key == 'id' && userSettings.id.search('#') < 0) {
+                        console.warn('photos-md: (No # in ID)');
+                        //break;
+                    }
+                // merge
+                    this[key] = userSettings[key];
+
+                    if (this.debug) console.info(key+' merged');
+                }
+                else {
+
+                // invalid key
+                    try {
+                        console.warn('photosMd.settings.merge: (Unvalid user-settings: '+ key +')');
+                    } catch (e) { }
+                }
+            }
+
+            if (this.debug) {
+                console.info(this);
+                console.groupEnd();
+            }
+        }
 	},
 // VIEWPORT
 	'viewport': {
 		'init': function () {
+        // set document element
 			var doc = document.documentElement;
 
+        // calculate properties
 			this.width = Math.max(doc.clientWidth, window.innerWidth || 0);
 			this.height = Math.max(doc.clientHeight, window.innerHeight || 0);
 			this.scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
@@ -24,7 +73,9 @@ var photosMd = {
             return this;
         },
 		'getScroll': function () {
+        // set document element
 			var doc = document.documentElement;
+        // calc actual scroll (cross-browser)
 			return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
 		}
 	}.init(),
@@ -35,7 +86,7 @@ var photosMd = {
 		'preview': {},
 		'full': {},
 		'add': function (src) {
-
+        // determine for which array it is
 			if (src.search('/preview/') > 0) {
 				var size = 'preview';
 			}
@@ -43,16 +94,27 @@ var photosMd = {
 				var size = 'full';
 			}
 
+        // get only name of image
 			var name = src.slice(src.lastIndexOf('/') + 1, src.length);
+        //check if it dosent exists already
 			if (!this[size].hasOwnProperty(name)) {
+        // create image object and add it to array
 				var img = new Image();
 				img.src = src;
-
 				this[size][name] = img;
 			}
 
 			return this;
 		}
+	},
+// VIDEO
+	'video': function (fig) {
+        // further development
+        if (this.settings.debug) {
+            console.groupCollapsed('photosMd.video:');
+            console.warn(fig);
+            console.groupEnd();
+        }
 	},
 // FLAGS
 	'flags': {
@@ -79,11 +141,15 @@ var photosMd = {
 	},
 // IMG preview <-> full
 	'src': function (slika) {
-		//var src = $(slika).find('img').prop('src');
+        if (this.settings.debug) console.groupCollapsed('photosMd.src:');
+    // get src string
 		var src = slika.getAttribute('src');
-		this.imgsBuffer.add(src);
-		src = src.slice(src.search('/assets'));
+		if (this.settings.debug) console.info('Old: '+src);
 
+    // add it to buffer
+		this.imgsBuffer.add(src);
+
+    // change full <-> preview
 		if (src.search('/preview/') > 0) {
 			src = src.replace('preview', 'full');
 		}
@@ -93,42 +159,13 @@ var photosMd = {
 		else {
 			return 0;
 		}
+		if (this.settings.debug) console.info('New: '+src);
 
-		if (this.settings.debug) console.log(src);
+    // add to buffer
 		this.imgsBuffer.add(src);
+
+        if (this.settings.debug) console.groupEnd();
 		return src;
-	},
-// MERGE settings
-	'merge': function (userSettings) {
-		// first merge debug, so logs can be done properly
-		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
-			this.settings['debug'] = 1;
-		}
-
-		for (var key in userSettings) {
-			if (userSettings.hasOwnProperty(key) && this.settings.hasOwnProperty(key)) {
-				if (key == 'id' && userSettings.id.search('#') < 0) {
-					console.warn('photos-md: (No # in ID)');
-					break;
-				}
-				this.settings[key] = userSettings[key];
-				if (this.settings.debug) console.log(key, ' merged');
-			}
-			else {
-				try {
-					console.warn('photos-md: (Unvalid user-settings: ', key, ')');
-				}
-				catch (e) { }
-			}
-		}
-
-		//if (userSettings.hasOwnProperty('create')) {
-		//	for (var i=0; i < userSettings.create.length; i++) {
-		//		this.create(userSettings.create[i]);
-		//	}
-		//}
-
-		if (this.settings.debug) console.log(this.settings);
 	},
 // TRANSLATE Calc function
 	'translate': function (el) {
@@ -176,7 +213,7 @@ var photosMd = {
 	},
 // OPEN full screen
 	'open': function (e) {
-		if (this.settings.debug) console.log(this);
+		if (this.settings.debug) console.groupCollapsed('photosMd.open:');
 
 		//console.warn(e.target);
 		var element = e.target;
@@ -196,15 +233,17 @@ var photosMd = {
 
 		var div = element.element.querySelector('div'),
 			img = element.element.querySelector('img'),
-			section = document.getElementById(this.settings.id.replace('#', '')),
+			section = document.querySelector(this.settings.id),
 			dimmer = section.querySelector('.galerija-dimmer'),
 			controler = section.querySelector('.galerija-controler');
 		//var arrows = controler.querySelector('.galerija-arrows');
 		//var header = controler.querySelector('.galerija-header');
 
 		var transform = 'scale('+element.scale.min+') translate('+element.translate.x+'px, '+(element.translate.y + (this.viewport.getScroll() - this.viewport.scroll) / element.scale.min )+'px)';
-		if (this.settings.debug) console.log(transform);
-		if (this.settings.debug) console.log(element.translate.y, this.viewport.scroll, window.pageYOffset, element.scale.min);
+		if (this.settings.debug) {
+            console.log(transform);
+            console.log(element.translate.y, this.viewport.scroll, window.pageYOffset, element.scale.min);
+        }
 
 		dimmer.style.transition = 'opacity '+this.settings.transition*1.5+'ms ease-out';
 		dimmer.style.opacity = 0;
@@ -228,7 +267,9 @@ var photosMd = {
 
 		div.style.height = element.size.height+'px';
 		div.style.width = element.size.width+'px';
+        div.offsetHeight;
 		div.style.transform = transform;
+        //div.offsetHeight;
 
 		if (!element.element.classList.contains('video'))
 			img.setAttribute('src', this.src(img));
@@ -253,10 +294,17 @@ var photosMd = {
 			title = url.substr(url.indexOf('=')+1, url.indexOf('.'));
 		window.history.replaceState(state, title, url);
 		//console.log(state, title, url);
+
+        if (this.settings.debug) console.groupEnd();
 	},
 // CLOSE full screnn
 	'close': function () {
-		if (this.flags.touch.disable) return;
+        if (this.settings.debug) console.groupCollapsed('photosMd.close:');
+
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		this.flags.touch.disable = 1;
 
 		var element = document.querySelector('.zoom');
@@ -299,29 +347,37 @@ var photosMd = {
 		document.querySelector('body').classList.remove('lock');
 
 	// url history
-		var url = (window.location.pathname + window.location.search + window.location.hash).replace(element.querySelector('figcaption > a').getAttribute('href'), '');
+		var url = (decodeURIComponent(window.location.pathname + window.location.search + window.location.hash)).replace(element.querySelector('figcaption > a').getAttribute('href'), '');
 		window.history.replaceState('', '', url);
+
+        if (this.settings.debug) console.groupEnd();
 	},
 // NEXT
 	'next': function (e) {
-		if (this.flags.touch.disable) return;
+        if (this.settings.debug) console.groupCollapsed('photosMd.next:');
+
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		this.flags.touch.disable = 1;
 	// determine direction
 		var direction = 0;
 		//console.log(e, this);
-		if(this.settings.debug) console.log(typeof e);
+		if(this.settings.debug) console.info('Type of event/argument: ', typeof e);
 
 		if ((typeof e === 'string' && e == 'left') || (typeof e === 'object' && e.target.classList.contains('icon-arrow-left'))) {
-			if (this.settings.debug) console.log('photosMd.next: (Direction: Left)');
+			if (this.settings.debug) console.info('Direction: Left');
 			direction = -1;
 		}
 		else if ((typeof e === 'string' && e == 'right') || (typeof e === 'object' && e.target.classList.contains('icon-arrow-right'))) {
-			if (this.settings.debug) console.log('photosMd.next: (Direction: Right)');
+			if (this.settings.debug) console.info('Direction: Right');
 			direction = 1;
 		}
 		else {
-			console.warn('photosMd.next: (Direction: Something went wrong here)');
+			console.warn('Direction: Something went wrong here');
 			this.flags.touch.disable = 0;
+            if (this.settings.debug) console.groupEnd();
 			return;
 		}
 
@@ -339,12 +395,13 @@ var photosMd = {
 
 	// check if its possible to get further running
 		if (figs.length < 2 || visibleFigs.length < 2) {
-			if (this.settings.debug) console.log('photosMd.next: (Next fig: Only one fig)');
+			if (this.settings.debug) console.info('No. of figs: Only one fig');
 			this.flags.touch.disable = 0;
+            if (this.settings.debug) console.groupEnd();
 			return;
 		}
 		else {
-			if (this.settings.debug) console.log('photosMd.next: (Next fig, no.: Figs: '+figs.length+', visible Figs:'+visibleFigs.length+')');
+			if (this.settings.debug) console.info('No. of figs: (Figs: '+figs.length+', visible Figs:'+visibleFigs.length+')');
 		}
 
 	// get current and next div serial number
@@ -355,9 +412,6 @@ var photosMd = {
 
 				if (next >= figs.length) { next = 0; }
 				else if (next < 0) { next = figs.length - 1; }
-
-				//next++;
-				//curr++;
 			}
 		}
 
@@ -368,6 +422,11 @@ var photosMd = {
 			else if (next < 0) { next = figs.length - 1; }
 		}
 
+        if (this.settings.debug) {
+            console.info('Current fig:'+curr);
+            console.info('Next fig: '+next, this.fig[next].element);
+        }
+
 	// fix figure width size
 		this.fig[next].element.style.width = this.fig[next].size.width+'px';
 
@@ -377,18 +436,17 @@ var photosMd = {
 			currDiv = this.fig[curr].element.querySelector('div'),
 			currImg = this.fig[curr].element.querySelector('img');
 
-		if(this.settings.debug) console.log('photosMd.next: (Next fig: '+next+', '+this.fig[next].element+')');
-
 	// calc translate path size
 		var translateAnimation = (direction * this.viewport.width/2 * 0.3);
-		//if(this.settings.debug) console.log(translateAnimation);
 
-	// calc first position
+	// calc first & final position
 		var transformFirst = 'scale('+this.fig[next].scale.min+') translate('+(this.fig[next].translate.x + translateAnimation)+'px, '+(this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min )+'px)';
-		if(this.settings.debug) console.log('photosMd.next: (1st transform:'+transformFirst+')');
-	// calc finnal positin
 		var transform = 'scale('+this.fig[next].scale.min+') translate('+this.fig[next].translate.x+'px, '+(this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min )+'px)';
-		if (this.settings.debug) console.log('photosMd.next: (transform: '+transform+')');
+
+		if(this.settings.debug) {
+            console.info('1st transform: '+transformFirst);
+            console.info('2nd transform: '+transform);
+        }
 
 	// prepare next div for transition, 0s tranistion
 		nextDiv.style.transition = 'none !important';
@@ -437,6 +495,8 @@ var photosMd = {
 			this.fig[next].element.classList.add('zoom');
 
 			this.flags.touch.disable = 0;
+
+            if (this.settings.debug) console.groupEnd();
 		}.bind(this), this.settings.transition);
 
 	// url history change
@@ -447,8 +507,12 @@ var photosMd = {
 	},
 // FILTER
 	'filter': function (e) {
+        if (this.settings.debug) console.groupCollapsed('photosMd.filter:');
 	// dont execute on same filter
-		if (e.target.classList.contains('active') && !e.target.classList.contains('more')) return;
+		if (e.target.classList.contains('active') && !e.target.classList.contains('more')) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 
 		if (this.settings.debug) console.log(e.target);
 
@@ -464,18 +528,6 @@ var photosMd = {
 			more.setAttribute('hidden', true);
 		}
 
-	// fix height of gallery
-		if (filter != 'all') {
-			var he = window.getComputedStyle(galerija, null)['height'];
-			//galerija.style.height = he;
-			galerija.style.minHeight = he;
-		}
-		else {
-			var he = window.getComputedStyle(galerija, null)['height'];
-			//galerija.style.height = he;
-			galerija.style.minHeight = he;
-		}
-
 	// set active filter button
 		var active = e.target.parentNode.querySelector('button[name="filter"].active');
 		if (active === null) {
@@ -486,9 +538,13 @@ var photosMd = {
 
 	// hide or show images
 		var figs = galerija.querySelectorAll('figure');
+        if (this.settings.debug) console.groupCollapsed('filter loop:');
 		for (var i=0; i < figs.length; i++) {
+        // copy data-filter atribute to variable
 			var set = figs[i].querySelector('img').getAttribute('data-filter');
-			//console.log(set);
+			if (this.settings.debug) console.info('Data filter: '+set);
+
+        // check if filter name is in given varirable & set show/hide class
 			if (set.indexOf(filter) === -1) {
 				figs[i].classList.add('hide');
 				figs[i].classList.remove('show');
@@ -498,6 +554,7 @@ var photosMd = {
 				figs[i].classList.remove('hide');
 			}
 
+        // wait animation, than add attribute hidden
 			var timer = setTimeout(function () {
 				clearTimeout(timer);
 				var galerija = document.querySelector(this.settings.id),
@@ -515,26 +572,37 @@ var photosMd = {
 						figs[i].classList.remove('show');
 					}
 				}
-
-				this.resize();
 			}.bind(this), this.settings.transition/2);
 		}
-		//galerija.offsetHeight; // Trigger repaint
+        if (this.settings.debug) console.groupEnd();
 
-		//this.resize();
+        var timer2 = setTimeout(function () {
+            clearTimeout(timer2);
+
+            document.querySelector(this.settings.id).offsetHeight;
+            this.resize();
+        }.bind(this), this.settings.transition/2);
+
+        if (this.settings.debug) console.groupEnd();
 	},
 // INIT
 	'init': function (userSettings) {
-		//console.log('INIT');
-		this.merge(userSettings);
-		//if (this.settings.debug) console.log('SETTINGS: ', this.settings);
+        if (userSettings.debug) {
+            console.group('photosMd.init:');
+            //console.profile('photosMd.init');
+        }
+
+		this.settings.merge(userSettings);
+
+    // declare variables
 		var section = document.querySelector(this.settings.id),
 			dimmer = section.querySelector('.galerija-dimmer'),
 			controler = section.querySelector('.galerija-controler'),
 			figure = section.querySelectorAll('figure');
 
+    // spin throug figures
 		for (var i = 0; figure.length > i; i++) {
-
+        // postpone proces if it is not fully loaded and calculated
 			if (figure[i].clientHeight <= 10 && figure[i].clientWidth <= 10 && (figure[i].getAttribute('hidden') == 'undefined')) {
 				var initTimer = setTimeout( function () {
 					clearTimeout(initTimer);
@@ -542,9 +610,11 @@ var photosMd = {
 					this.init({});
 				}.bind(this), 500);
 			}
-			//figure[i].offsetHeight;
+
+        // get position
 			var tmpFig = this.position(figure[i]);
 
+        // calc scale
 			tmpFig.scale = {
 				'x': this.viewport.width / (tmpFig.size.width),
 				'y': this.viewport.height / (tmpFig.size.height),
@@ -555,99 +625,106 @@ var photosMd = {
 				}
 			}.init();
 
+        // get translation values
 			tmpFig.translate = this.translate(tmpFig);
-			//if (this.settings.debug) console.log(tmpFig.translate);
 
+        // add reference to element and url history
 			tmpFig.element = figure[i];
 			tmpFig.history = figure[i].querySelector('figcaption > a').getAttribute('href');
 
+        // add to array
 			this.fig.push(tmpFig);
 
-			//this.flags.clickE = this.open.bind(this);
+        // bind event listner for open
 			var evnt = this.open.bind(this);
 			figure[i].addEventListener('click', evnt, false);
 		}
 
+    // add event listners for control buttons in full view mode
 		controler.querySelector('.galerija-controler .icon-back').addEventListener('click', this.close.bind(this), false);
 		controler.querySelector('.galerija-controler .icon-arrow-left').addEventListener('click', this.next.bind(this), false);
 		controler.querySelector('.galerija-controler .icon-arrow-right').addEventListener('click', this.next.bind(this), false);
 
-	// filter buttons eventlistner
+	// add event listners for filter buttons
 		var filterBtns = section.querySelectorAll('.filter button[name="filter"], footer button[name="filter"][data-filter="all"]');
 		for (var i=0; i < filterBtns.length; i++) {
 			filterBtns[i].addEventListener('click', this.filter.bind(this), false);
 		}
-
+    // add event listner for keyboard
 		document.addEventListener('keydown', this.keyevent.bind(this), false);
 		if (document.attachEvent)
 			document.attachEvent('keydown', this.keyevent.bind(this));
 
+    // add event listner for resize or orientation change
 		window.addEventListener('resize', this.resize.bind(this), false);
 		window.addEventListener('orientationchange', this.resize.bind(this), false);
 
-	// touch event listner
-		document.querySelector('.galerija-arrows').addEventListener('touchstart', this.touchStart.bind(this), false);
-		document.querySelector('.galerija-arrows').addEventListener('touchmove', this.touchMove.bind(this), false);
-		document.querySelector('.galerija-arrows').addEventListener('touchend', this.touchEnd.bind(this), false);
+	// add touch event listner
+        if (this.settings.touch.enable) {
+            document.querySelector('.galerija-arrows').addEventListener('touchstart', this.touchStart.bind(this), false);
+            document.querySelector('.galerija-arrows').addEventListener('touchmove', this.touchMove.bind(this), false);
+            document.querySelector('.galerija-arrows').addEventListener('touchend', this.touchEnd.bind(this), false);
+        }
 
-		//console.log(links);
+	// link blocker on figcaption>a clicks (SEO)
 		var links = document.querySelectorAll('#galerija figcaption > a');
-
-	// link blocker
 		for (var i = 0; i < links.length; ++i) {
 			links[i].addEventListener('click', function (e) {
 				e.preventDefault();
-
-				//console.log('SEO break link', e.target);
-
-				//this.flags.historyState = window.history.state;
-				var url = e.target.getAttribute('href')+this.settings.id;
-				var state = {img: url.substr(url.indexOf('=')+1, url.length)};
-				var title = state.img.substr(0, state.img.indexOf('.'));
-				window.history.replaceState(state, title, url);
-
-				//console.log(state, title, url);
-				//console.log('state: ', window.history.state);
-
 				return false;
 			}.bind(this), false);
 		}
 
-	// url search handler
-		for (var j = 0; j < this.fig.length; j++) {
-			//console.log(window.location.search, j);
-			//console.log(this.fig[j].history);
+	// open image from url
+        if (window.location.search.search("(?:/\?|&)p=.+") > 0) {
+            var search = window.location.search,
+                src = decodeURIComponent('?'+search.slice(search.indexOf('p='), search.indexOf('.jpg')+4));
 
-			if (this.fig[j].history == window.location.search) {
-				if (this.settings.debug) console.log('match: ', this.fig[j].history);
+            for (var j = 0; j < this.fig.length; j++) {
+                if (this.fig[j].history == src) {
+                    if (this.settings.debug) console.info('Url search match: ', this.fig[j].history);
 
-				//this.flags.counter = j;
-				window.location.hash = this.settings.id;
+                // SAFE: Dont open hidden image - dont show empty viewer!
+                    if (!(this.fig[j].element.getAttribute('hidden') == null)) {
+                        this.fig[j].element.removeAttribute('hidden');
+                        this.fig[j].element.offsetHeight;
+                        this.resize();
+                    }
 
-				//setTimeout(this.open.bind(this, this.fig[j]), 0);
+                    if (this.settings.id.search('#') >= 0)
+                        window.location.hash = this.settings.id;
 
-				this.open({'target': this.fig[j].element}); //.bind(this);
-				//window.addEventListener('load', this.open.bind(this.fig[j]), false);
-				break;
-			}
-		}
+                    this.open({'target': this.fig[j].element});
+                    break;
+                }
+            }
+        }
 
-		if (this.settings.debug) console.log('photosMd.init: (created obj: ', this, ')');
+		if (this.settings.debug) {
+            console.info('Object photosMd: ', this);
+            //console.profileEnd();
+            console.groupEnd();
+        }
 	},
 // WINDOW RESIZE
 	'resize': function () {
-		//var start = new Date().getTime();
-		//console.log('RESIZE');
+        if (this.settings.debug) {
+            console.groupCollapsed('photosMd.resize:');
+            //console.profile('photoMd.resize');
+            //var start = new Date().getTime();
+        }
+
 		var section = document.querySelector(this.settings.id),
 			figure = section.querySelectorAll('figure'),
 			zoomed = section.querySelector('.zoom'),
 			i = 0;
-		//if (this.settings.debug) console.log('FIGURE: ', figure);
 
 		this.viewport.init();
 
-		//this.fig.splice(0,this.fig.length);
 		for (i = 0; figure.length > i; i++) {
+        // skip hidden elements
+            if (!(figure[i].getAttribute('hidden') == null)) continue;
+
 			var tmpFig = this.position(figure[i]);
 
 			tmpFig.scale = {
@@ -661,37 +738,32 @@ var photosMd = {
 			}.init();
 
 			tmpFig.translate = this.translate(tmpFig);
-			if (this.settings.debug) console.log(tmpFig.translate);
-
-			/*-((tmpFig.position.top + tmpFig.margin.top + tmpFig.size.height / 2 * (1 - tmpFig.scale.min))/tmpFig.scale.min)*/
-
 			tmpFig.element = figure[i];
 
+			if (this.settings.debug) console.info(tmpFig.translate);
 			this.fig[i] = tmpFig;
-
-			//var f = this.open.bind(this);
-			//figure[i].removeEventListener('click', this.flags.clickE, false);
-			//figure[i].addEventListener('click', f, false);
 		}
-		//console.log(this.fig);
 
-		//var zoomed = section.querySelector('.zoom');
 		if (zoomed) {
-			//if (this.settings.debug) console.log('one is zoomed');
+			if (this.settings.debug) console.groupCollapsed('Zoomed:');
 
-			//var div = zoomed.querySelector('div');
-			//console.log(this.fig);
 			for (var i = 0; this.fig.length > i; i++) {
 				if(this.fig[i].element.classList.contains('zoom')) {
-					//var figure = this.fig[i].element;
+
 					var obj = this.fig[i];
+                    if (this.settings.debug) console.info(obj);
+
+                    break;
 				}
 			}
+
 			var div = obj.element.querySelector('div');
 
 			var transform = 'scale('+obj.scale.min+') translate('+obj.translate.x+'px, '+(obj.translate.y + (window.pageYOffset - photosMd.viewport.scroll) / obj.scale.min )+'px)';
-			if (photosMd.settings.debug) console.log(transform);
-			if (photosMd.settings.debug) console.log(obj.translate.y, photosMd.viewport.scroll, window.pageYOffset, obj.scale.min);
+			if (photosMd.settings.debug) {
+                console.info(transform);
+                console.info(obj.translate.y, photosMd.viewport.scroll, window.pageYOffset, obj.scale.min);
+            }
 
 			div.style.position = 'fixed';
 			div.style.zIndex = 30;
@@ -701,30 +773,47 @@ var photosMd = {
 			div.style.height = obj.size.height+'px';
 			div.style.width = obj.size.width+'px';
 			div.style.transform = transform;
+
+            if (this.settings.debug) console.groupEnd();
 		}
 
-		//var end = new Date().getTime();
-		//var time = end - start;
-		//console.warn('Execution time: ' + time);
+        if (this.settings.debug) {
+            console.groupEnd();
+            //console.profileEnd();
+            //var end = new Date().getTime();
+            //var time = end - start;
+            //console.warn('Execution time: ' + time);
+        }
 	},
 // WINDOW KEYEVNTS
 	'keyevent': function (e) {
-		if (this.flags.touch.disable) return;
+        if (this.settings.debug) console.groupCollapsed('photosMd.keyevent:');
+    // disable multiple trigers
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		//this.flags.touch.disable = 1;
 
+    // pass and test event object
 		e = e || window.event;
-		if (this.settings.debug) console.log('KEY: ', e.keyCode, e.key);
-
+		if (this.settings.debug) console.info('KEY: ', e.keyCode, e.key);
 		if (e.keyCode != 27 && e.keyCode != 37 && e.keyCode != 39) {
+            if (this.settings.debug) console.groupEnd();
 			return;
 		}
-		// gallery buttons
+
+    // gallery buttons
 		if (document.querySelector('.zoom') && !this.flags.imgNextTransitionProgress) {
+
+            if(this.settings.debug) console.info('Working on keyevent');
+
 			this.flags.imgNextTransitionProgress = 1;
 			var timer = setTimeout(function () {
 				clearTimeout(timer);
 				this.flags.imgNextTransitionProgress = 0;
-				if(this.settings.debug) console.log('clear flag');
+				if(this.settings.debug) console.info('Clear "imgNextTransitionProgress" flag');
+                if (this.settings.debug) console.groupEnd();
 			}.bind(this), this.settings.transition);
 
 		// ESCAPE:	27
@@ -732,6 +821,7 @@ var photosMd = {
 		// RIGHT:	39
 			if (e.keyCode == 27) {
 				this.close();
+                //if (this.settings.debug) console.groupEnd(); // ni potreben ker je timer zgoraj
 				return;
 			}
 			else if (e.keyCode == 37) {
@@ -742,13 +832,15 @@ var photosMd = {
 			}
 		}
 		else {
-			//console.log('Not opened');
+            if (this.settings.debug) console.groupEnd();
 		}
-		//this.flags.touch.disable = 0;
 	},
 // TOUCH events
 	'touchStart': function (e) {
-		if (this.flags.touch.disable) return;
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		//this.flags.touch.disable = 1;
 
 		var t = e.touches[0];
@@ -758,7 +850,10 @@ var photosMd = {
 		//this.flags.touch.disable = 0;
 	},
 	'touchMove': function (e) {
-		if (this.flags.touch.disable) return;
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		//this.flags.touch.disable = 1;
 
 		e.preventDefault();
@@ -770,7 +865,10 @@ var photosMd = {
 		return false;
 	},
 	'touchEnd': function (e) {
-		if (this.flags.touch.disable) return;
+		if (this.flags.touch.disable) {
+            if (this.settings.debug) console.groupEnd();
+            return;
+        }
 		//this.flags.touch.disable = 1;
 
 		var startX = this.flags.touch.start.x;
@@ -779,10 +877,10 @@ var photosMd = {
 		var startY = this.flags.touch.start.y;
 		var endY = this.flags.touch.end.y;
 
-		var tMinX = this.settings.tMinX;
-		var tMaxX = this.settings.tMaxX;
-		var tMinY = this.settings.tMinY;
-		var tMaxY = this.settings.tMaxY;
+		var tMinX = this.settings.touch.minX;
+		var tMaxX = this.settings.touch.maxX;
+		var tMinY = this.settings.touch.minY;
+		var tMaxY = this.settings.touch.maxY;
 
 		var direction = '';
 
