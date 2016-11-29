@@ -6,6 +6,7 @@
 *.css.map
 *.min.*
 *.log
+/demo
 
 # OS generated files #
 .DS_Store
