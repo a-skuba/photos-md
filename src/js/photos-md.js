@@ -120,11 +120,10 @@ var photosMd = {
 	// FLAGS
 	'flags': {
 		'imgNextTransitionProgress': 0,
-		//'clickE': '',
+		'imgGa': 0,
 		'touch': {
 			'disable': 0,
 			'init': function () {
-				//this.disable = 0;
 				this.start = {
 					x: 0,
 					y: 0
@@ -137,8 +136,6 @@ var photosMd = {
 				return this;
 			}
 		}.init()
-		//'historyState': ''
-		//'counter': 0
 	},
 	// IMG preview <-> full
 	'src': function (slika) {
@@ -301,6 +298,15 @@ var photosMd = {
 		window.history.replaceState(state, title, url);
 		//console.log(state, title, url);
 
+		// GAnalytics
+		if(typeof ga != 'undefined')
+			ga('send', 'event', {
+				eventCategory: 'photosMd',
+				eventAction: 'Open',
+				eventLabel: url,
+				eventValue: this.flags.imgGa
+			});
+
 		if (this.settings.debug) console.groupEnd();
 	},
 	// CLOSE full screnn
@@ -313,14 +319,13 @@ var photosMd = {
 		}
 		this.flags.touch.disable = 1;
 
-		var element = document.querySelector('.zoom');
-
-		var img = element.querySelector('img');
-		var section = document.querySelector(this.settings.id);
-		var dimmer = section.querySelector('.galerija-dimmer');
-		var controler = section.querySelector('.galerija-controler');
-		var div = document.querySelector('.zoom > div');
-		var figcaption = document.querySelector('.zoom figcaption');
+		var element = document.querySelector('.zoom'),
+			img = element.querySelector('img'),
+			section = document.querySelector(this.settings.id),
+			dimmer = section.querySelector('.galerija-dimmer'),
+			controler = section.querySelector('.galerija-controler'),
+			div = document.querySelector('.zoom > div'),
+			figcaption = document.querySelector('.zoom figcaption');
 
 		dimmer.classList.remove('open');
 		dimmer.classList.add('close');
@@ -353,8 +358,18 @@ var photosMd = {
 		document.querySelector('body').classList.remove('lock');
 
 		// url history
-		var url = (decodeURIComponent(window.location.pathname + window.location.search + window.location.hash)).replace(element.querySelector('figcaption > a').getAttribute('href'), '');
+		var href = element.querySelector('figcaption > a').getAttribute('href'),
+			url = (decodeURIComponent(window.location.pathname + window.location.search + window.location.hash)).replace(href, '');
 		window.history.replaceState('', '', url);
+
+		// GAnalytics
+		if(typeof ga != 'undefined')
+			ga('send', 'event', {
+				eventCategory: 'photosMd',
+				eventAction: 'Close',
+				eventLabel: href,
+				eventValue: this.flags.imgGa
+			});
 
 		if (this.settings.debug) console.groupEnd();
 	},
@@ -388,8 +403,8 @@ var photosMd = {
 		}
 
 		// start searching for next div
-		var section = document.querySelector(this.settings.id);
-		var figs = section.querySelector('.zoom').parentNode.querySelectorAll('figure');
+		var section = document.querySelector(this.settings.id),
+			figs = section.querySelector('.zoom').parentNode.querySelectorAll('figure');
 
 		// get all visible figures (filter can hidde them)
 		var visibleFigs = [];
@@ -446,8 +461,8 @@ var photosMd = {
 		var translateAnimation = (direction * this.viewport.width / 2 * 0.3);
 
 		// calc first & final position
-		var transformFirst = 'scale(' + this.fig[next].scale.min + ') translate(' + (this.fig[next].translate.x + translateAnimation) + 'px, ' + (this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min) + 'px)';
-		var transform = 'scale(' + this.fig[next].scale.min + ') translate(' + this.fig[next].translate.x + 'px, ' + (this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min) + 'px)';
+		var transformFirst = 'scale(' + this.fig[next].scale.min + ') translate(' + (this.fig[next].translate.x + translateAnimation) + 'px, ' + (this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min) + 'px)',
+			transform = 'scale(' + this.fig[next].scale.min + ') translate(' + this.fig[next].translate.x + 'px, ' + (this.fig[next].translate.y + (window.pageYOffset - this.viewport.scroll) / this.fig[next].scale.min) + 'px)';
 
 		if (this.settings.debug) {
 			console.info('1st transform: ' + transformFirst);
@@ -475,8 +490,8 @@ var photosMd = {
 			nextImg.setAttribute('src', this.src(nextImg));
 
 		// replace transform->translateX value
-		var currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation);
-		var currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, 'translate(' + currTranslateX + 'px');
+		var currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation),
+			currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, 'translate(' + currTranslateX + 'px');
 		// apply exit to current div
 		currDiv.style.transform = currTranslate;
 		currDiv.style.opacity = 0;
@@ -506,10 +521,19 @@ var photosMd = {
 		}.bind(this), this.settings.transition);
 
 		// url history change
-		var url = this.fig[next].element.querySelector('figcaption > a').getAttribute('href');
-		var state = { url: url };
-		var title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
+		var url = this.fig[next].element.querySelector('figcaption > a').getAttribute('href'),
+			state = { url: url },
+			title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
 		window.history.pushState(state, title, url);
+
+		// GAnalytics
+		if(typeof ga != 'undefined')
+			ga('send', 'event', {
+				eventCategory: 'photosMd',
+				eventAction: 'Next',
+				eventLabel: url.replace('?p=', ''),
+				eventValue: this.flags.imgGa
+			});
 	},
 	// FILTER
 	'filter': function (e) {
@@ -537,7 +561,7 @@ var photosMd = {
 		// set active filter button
 		var active = e.target.parentNode.querySelector('button[name="filter"].active');
 		if (active === null) {
-			var active = e.target.parentNode.querySelector('button[data-filter="all"]');
+			active = e.target.parentNode.querySelector('button[data-filter="all"]');
 		}
 		active.classList.remove('active');
 		e.target.classList.add('active');
@@ -589,6 +613,14 @@ var photosMd = {
 			this.resize();
 		}.bind(this), this.settings.transition / 2);
 
+		// GAnalytics
+		if(typeof ga != 'undefined')
+			ga('send', 'event', {
+				eventCategory: 'photosMd',
+				eventAction: 'Filter',
+				eventLabel: filter
+			});
+
 		if (this.settings.debug) console.groupEnd();
 	},
 	// INIT
@@ -601,8 +633,8 @@ var photosMd = {
 			this.settings.merge(userSettings);
 		}
 
+		// postpone proces if it is not fully loaded and calculated
 		if (document.readyState !== 'complete') {
-			// postpone proces if it is not fully loaded and calculated
 			if (this.settings.debug) {
 				console.info('Init delayed');
 				console.groupEnd();
@@ -883,18 +915,15 @@ var photosMd = {
 		}
 		//this.flags.touch.disable = 1;
 
-		var startX = this.flags.touch.start.x;
-		var endX = this.flags.touch.end.x;
-
-		var startY = this.flags.touch.start.y;
-		var endY = this.flags.touch.end.y;
-
-		var tMinX = this.settings.touch.minX;
-		var tMaxX = this.settings.touch.maxX;
-		var tMinY = this.settings.touch.minY;
-		var tMaxY = this.settings.touch.maxY;
-
-		var direction = '';
+		var startX = this.flags.touch.start.x,
+			endX = this.flags.touch.end.x,
+			startY = this.flags.touch.start.y,
+			endY = this.flags.touch.end.y,
+			tMinX = this.settings.touch.minX,
+			tMaxX = this.settings.touch.maxX,
+			tMinY = this.settings.touch.minY,
+			tMaxY = this.settings.touch.maxY,
+			direction = '';
 
 		//horizontal detection
 		if ((((endX - tMinX > startX) || (endX + tMinX < startX)) && ((endY < startY + tMaxY) && (startY > endY - tMaxY) && (endX > 0)))) {
