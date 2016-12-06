@@ -20,6 +20,7 @@ var photosMd = {
 			maxY: 60,
 		},
 		'create': [],
+		'preview': 1,
 		// MERGE settings
 		'merge': function (userSettings) {
 			// first merge debug, so logs can be done properly
@@ -142,6 +143,15 @@ var photosMd = {
 	// IMG preview <-> full
 	'src': function (slika) {
 		if (this.settings.debug) console.groupCollapsed('photosMd.src:');
+		// no preview settings
+		if (!this.settings.preview) {
+			if (this.settings.debug) {
+				console.info('No preview images (settings).');
+				console.groupEnd();
+			}
+			return slika.getAttribute('src');
+		}
+
 		// get src string
 		var src = slika.getAttribute('src');
 		if (this.settings.debug) console.info('Old: ' + src);
@@ -583,30 +593,36 @@ var photosMd = {
 	},
 	// INIT
 	'init': function (userSettings) {
-		if (userSettings.debug) {
-			console.group('photosMd.init:');
-			//console.profile('photosMd.init');
+		if (Object.keys(userSettings).length > 0) {
+			if (userSettings.debug !== undefined && userSettings.debug) {
+				console.group('photosMd.init:');
+				//console.profile('photosMd.init');
+			}
+			this.settings.merge(userSettings);
 		}
 
-		this.settings.merge(userSettings);
+		if (document.readyState !== 'complete') {
+			// postpone proces if it is not fully loaded and calculated
+			if (this.settings.debug) {
+				console.info('Init delayed');
+				console.groupEnd();
+			}
+
+			window.addEventListener('load', function () {
+				this.init({});
+			}.bind(this), false);
+
+			return;
+		}
 
 		// declare variables
 		var section = document.querySelector(this.settings.id),
 			dimmer = section.querySelector('.galerija-dimmer'),
 			controler = section.querySelector('.galerija-controler'),
 			figure = section.querySelectorAll('figure');
-
+		
 		// spin throug figures
 		for (var i = 0; figure.length > i; i++) {
-			// postpone proces if it is not fully loaded and calculated
-			if (figure[i].clientHeight <= 10 && figure[i].clientWidth <= 10 && (figure[i].getAttribute('hidden') == 'undefined')) {
-				var initTimer = setTimeout(function () {
-					clearTimeout(initTimer);
-					console.warn('Init delay');
-					this.init({});
-				}.bind(this), 500);
-			}
-
 			// get position
 			var tmpFig = this.position(figure[i]);
 

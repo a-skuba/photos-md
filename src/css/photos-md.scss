@@ -211,14 +211,6 @@ html, body {
 				transform: scale(.98);
 				@include transition(transform .2s ease-out);
 			}
-
-			img {
-
-			}
-
-			figcaption {
-
-			}
 		}
 
 		&.zoom img {
