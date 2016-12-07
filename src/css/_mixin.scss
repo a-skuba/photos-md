@@ -195,8 +195,13 @@
 //  - justify-content: [flex-start] | flex-end | center | space-between | space-around
 //  - align-items: [stretch] | flex-start | flex-end | center | baseline
 @mixin flexie($flow, $justify, $align) {
-	@include flexbox;
-	@include flex-flow($flow);
-	@include justify-content($justify);
-	@include align-items($align);
+	display: flex;
+	flex-flow: $flow;
+	justify-content: $justify;
+	align-items: $align;
+
+	//@include flexbox;
+	//@include flex-flow($flow);
+	//@include justify-content($justify);
+	//@include align-items($align);
 }
