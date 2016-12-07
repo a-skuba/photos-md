@@ -18,3 +18,4 @@ I wanted Google Photos like gallery with all the cool UX transitions and also SE
 ## Features currently being developed
 - **ES6 module**
 - **Documentation of API**
+- **Video support**
