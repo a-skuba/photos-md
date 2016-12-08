@@ -1,8 +1,45 @@
 @import "mixin";
-@import "icons/style";  // /assets/style/icons/
+@import "font"; // inside `_font.scss` set path to font files!
 
-$filter-hover: #f2f2f2;
-$filter-active: #ebebeb;
+// ==============================================================
+// SETTINGS
+// ==============================================================
+
+$id: '#galerija';
+
+// transition duration for photosMd in ms
+$transition-duration: 400;
+// background color
+$background: transparent;
+
+$filter-active: #455a64;
+$filter-inactive: #adadad;
+$loadmore-bg: #455a64;
+$loadmore-bg-hover: #455a64;
+$loadmore-text: #fff;
+
+// full view settings
+$zoom-bg: #000;
+$zoom-header: #000;
+$zoom-header-size: 3.5em;
+
+// back button in fullview
+$navigation-back: #fff;
+$navigation-back-circle: #555;
+
+// navigation next/prev button settings
+$navigation-size: 2.5em;
+$navigation-size-small: 1.5em;
+$navigation-next: #fff;
+$navigation-next-circle: #efefef;
+
+// gridview height of image
+$figure-size: 10rem;
+
+
+// ==============================================================
+// DEFINITION
+// ==============================================================
 
 html, body {
 	&.lock {
@@ -10,76 +47,72 @@ html, body {
 	}
 }
 
-#galerija {
-	padding-top: 3em;
-	padding-bottom: 5em;
-	width: 100vw;
+#{$id} {
+	//padding-bottom: 5em;
+	width: 100%;
 	height: auto;
+	background-color: $background;
 
+	transition: height #{$transition-duration}ms ease-out;
 	@include flexie(row wrap, center, flex-start);
+	align-content: flex-start;
+
 	@media screen and (max-width: 705px) {
-		@include flexie(column wrap, flex-start, center);
+		//@include flexie(column wrap, flex-start, center);
 	}
+	//transition: min-height .5s ease-out;
 
-	//@include transition(all 1s ease-out);
-
-	.filter {
+	header {
 		width: 100%;
-		padding: 2em;
+		@include flexie(row wrap, center, center);
 
-		@include flexie(row nowrap, center, center);
-
-		$border: 1px solid rgba(0, 0, 0, .2);
-		$radius: 0px;
-		div {
-			//background: red;
-			@include shadow(1px 1px 10px 1px rgba(0, 0, 0, .2));
-
-			border-radius: $radius;
+		.filter {
+			width: 100%;
+			padding: 2em;
 			@include flexie(row nowrap, center, center);
-		}
 
-		button {
-			font: {
-				size: 1rem;
-				weight: 600;
+			div {
+				@include flexie(row nowrap, center, strech);
 			}
 
-			background: white;
-			outline: none;
-			border: $border;
-			border-color: transparent;
-			padding: 5px 20px;
-			margin: 0;
-			@include transition(transform .2s ease-in-out, box-shadow .2s ease-in-out);
-
-			&:first-of-type {
-				border-top-left-radius: $radius;
-				border-bottom-left-radius: $radius;
-			}
-			&:last-of-type {
-				border-top-right-radius: $radius;
-				border-bottom-right-radius: $radius;
-			}
-
-			&:focuse {
-				outline: none;
-			}
-
-			&:hover {
-				background-color: $filter-hover;
-				//transform: translateY(2px);
-				//@include shadow(1px 1px 5px 1px rgba(0, 0, 0, .1));
-			}
-
-			&.active {
-				background-color: $filter-active;
-
-				&:not(:first-of-type) {
-					border-left: $border;
+			button {
+				font: {
+					size: 1rem;
+					weight: 100;
 				}
-				&:not(:last-of-type) {
-					border-right: $border;
+
+				font-weight: bold;
+				border: none;
+				border-bottom: 2px solid $filter-inactive;
+				outline: none;
+				padding: 5px 20px;
+				margin: 0;
+
+				background: transparent;
+				color: $filter-inactive;
+
+				&:not(.active):hover {
+					color: $filter-active;
+					cursor: pointer;
+				}
+
+				&.active {
+					background: transparent;
+					border-bottom: 4px solid $filter-active;
+					color: $filter-active;
+				}
+
+			}
+
+			@media screen and (max-width: 640px) {
+				padding: 2px;
+
+				button {
+					font: {
+						size: .8rem;
+						weight: 400;
+					}
+					padding: 5px 10px;
 				}
 			}
 		}
@@ -94,7 +127,7 @@ html, body {
 			position: fixed;
 			top: 0;
 			left: 0;
-			width: 100vw;
+			width: 100%;
 			height: 100vh;
 			padding: 0;
 			margin: 0;
@@ -108,22 +141,18 @@ html, body {
 	}
 
 	.galerija-controler.open {
-		$header: 3.5em;
 		z-index: 40;
 		@include flexie(column nowrap, flex-start, center);
 
 		.galerija-header {
-			@include flex(0, 1, $header);
+			flex: 0 1 $zoom-header-size;
 			width: 100%;
-			background: linear-gradient(0deg, transparent, transparentize(#000, 0.4));
-			//background: linear-gradient(0deg,rgba(0,0,0,0),rgba(0,0,0,0.4));
-			color: white;
-			font-weight: 800;
-
+			background: $zoom-header; // fallback
+			background: linear-gradient(0deg, transparent, transparentize($zoom-header, 0.4));
 			@include flexie(row nowrap, flex-start, center);
 
 			span {
-				color: white;
+				color: $navigation-back;
 				margin: 5px 1em;
 				padding: .8em;
 				border-radius: 2em;
@@ -132,22 +161,22 @@ html, body {
 					cursor: pointer;
 				}
 				&:active {
-					background: #555;
+					background: $navigation-back-circle;
 				}
 			}
 		}
 
 		.galerija-arrows {
-			@include flex(0, 1, 100%);
+			flex: 0 1 100%;
 			width: 100%;
 			z-index: 50;
-			@include flexie(row no-wrap, space-between, center);
+			@include flexie(row nowrap, space-between, center);
 
 			div {
-				$size: 2.5em;
+				//$navigation-size: 2.5em;
 
 				opacity: 0;
-				@include transition(opacity .1s ease-in-out);
+				transition: opacity .1s ease-in-out;
 
 				&:first-of-type {
 					padding: 30vh 30vw 30vh 0;
@@ -161,20 +190,18 @@ html, body {
 				}
 
 				span {
-					font-size: $size;
-					margin: #{$size/8};
-					padding: #{$size/8};
+					font-size: $navigation-size;
+					margin: #{$navigation-size/8};
+					padding: #{$navigation-size/8};
 					color: white;
-					border-radius: $size;
+					border-radius: $navigation-size;
 					background: transparentize(#424242, 0.54);
 
-					@media screen and (max-width: #{$size * 11}) {
-						$size: 1.5em;
-
-						font-size: $size;
-						margin: #{$size/8};
-						padding: #{$size/8};
-						border-radius: $size;
+					@media screen and (max-width: #{$navigation-size * 11}) {
+						font-size: $navigation-size-small;
+						margin: #{$navigation-size-small/8};
+						padding: #{$navigation-size-small/8};
+						border-radius: $navigation-size-small;
 					}
 
 					&:hover {
@@ -186,41 +213,40 @@ html, body {
 	}
 
 	figure {
-		//$size: 1.5rem;
-		//width: #{16 * $size};
-		//height: #{9 * $size};
-		height: 15rem;
+		height: $figure-size;
 		max-width: 90vw;
 		position: relative;
 		overflow: hidden;
-		//background-color: $secundary;
-
-		//margin: .25em;
+		background-color: transparent;
+		
 		margin: 5px;
 
-		@include shadow(1px 1px 10px 2px rgba(0, 0, 0, .2));
-		@include transition(box-shadow .3s ease-in-out, transform 0s linear, opacity .4s ease-in-out);
+		box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, .2);
+		transition: box-shadow .3s ease-in-out, transform 0s linear, opacity #{$transition-duration/2}ms ease-in-out;
+		//align-self: flex-start;
 
+		&.zoom {
+			box-shadow: 0px 0px 0px 0px transparent;
+		}
+		
 		&:hover:not(.zoom) {
 			background-color: transparent;
-			@include shadow(0px 0px 0px transparent);
+			box-shadow: 0px 0px 0px transparent;
 			cursor: pointer;
 
 			/* tablet performance issue */
 			@media screen and (min-width: 1600px) {
 				transform: scale(.98);
-				@include transition(transform .2s ease-out);
+				transition: transform #{$transition-duration/2}ms ease-out;
 			}
 		}
 
 		&.zoom img {
 			object-fit: contain;
 			object-position: center;
-			//transform: scale(1);
 		}
 
 		&.hide, &.show {
-			//transform: translateY(50px);
 			opacity: 0;
 		}
 
@@ -234,7 +260,7 @@ html, body {
 		img {
 			height: 100%;
 
-			@include transition(all .3s ease-in-out);
+			transition: all #{$transition-duration/2}ms ease-in-out;
 		}
 
 		figcaption {
@@ -242,15 +268,49 @@ html, body {
 			position: absolute;
 			padding: 3px 8px;
 			width: 100%;
+			//height: 5rem;
 			bottom: 0;
 			left: 0;
 			box-sizing: border-box;
 
-			@include transition(transform .3s ease-in-out, opacity .3s ease-in-out .1s);}
+			transition: transform #{$transition-duration * 3 / 4}ms ease-in-out, opacity #{$transition-duration * 3 / 4}ms ease-in-out #{$transition-duration / 4}ms;
 
 			a, p {
 				text-align: left justify;
 				font-size: 12px;
 			}
 		}
+
+		@media screen and (max-width: 720px) {
+			height: 8em; // backport
+			height: 28vw; // backport hard calced
+			height: calc(50vw * #{9 / 16});
+		}
+	}
+
+	footer {
+		width: 100%;
+		padding-top: 2rem;
+		@include flexie(row wrap, center, center);
+
+		button {
+			padding: 8px 15px;
+
+			border: none;
+			border-radius: 3px;
+			font-size: 1rem;
+			font-weight: bold;
+			background-color: $loadmore-bg;
+			color: $loadmore-text;
+
+			box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, .2);
+			transition: box-shadow .3s ease-in-out, background-color .3s ease-in-out, color .3s ease-in-out;
+
+			&:hover {
+				//color: $loadmore-text;
+				background-color: $loadmore-bg-hover;
+				box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+			}
+		}
+	}
 }

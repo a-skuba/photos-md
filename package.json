@@ -1,0 +1,36 @@
+{
+  "name": "photos-md",
+  "version": "1.0.0",
+  "description": "Responsive material design gallery JS library (Google Photos like)",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anejskubic/photos-md.git"
+  },
+  "keywords": [
+    "photos",
+    "material",
+    "responsive",
+    "js",
+    "gallery"
+  ],
+  "author": {
+    "name": "Anej Skubic",
+    "url": "(http://www.skuba-buba.com/)"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anejskubic/photos-md/issues"
+  },
+  "homepage": "https://github.com/anejskubic/photos-md#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.2",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^3.1.1",
+    "gulp-ftp": "^1.1.0",
+    "gulp-sass": "^2.3.2"
+  }
+}
