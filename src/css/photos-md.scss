@@ -244,6 +244,9 @@ html, body {
 		&.zoom img {
 			object-fit: contain;
 			object-position: center;
+			// Safari blurry images fix
+			backface-visibility: hidden;
+			transform: translateZ(0) scale(1.0, 1.0);
 		}
 
 		&.hide, &.show {
