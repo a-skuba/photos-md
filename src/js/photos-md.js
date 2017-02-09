@@ -120,7 +120,7 @@ var photosMd = {
 	// FLAGS
 	'flags': {
 		'imgNextTransitionProgress': 0,
-		'imgGa': 0,
+		//'imgGa': '',
 		'touch': {
 			'disable': 0,
 			'init': function () {
@@ -363,7 +363,7 @@ var photosMd = {
 		window.history.replaceState('', '', url);
 
 		// GAnalytics
-		if(typeof ga != 'undefined')
+		if (typeof ga != 'undefined')
 			ga('send', 'event', {
 				eventCategory: 'photosMd',
 				eventAction: 'Close',
@@ -527,7 +527,7 @@ var photosMd = {
 		window.history.pushState(state, title, url);
 
 		// GAnalytics
-		if(typeof ga != 'undefined')
+		if (typeof ga != 'undefined')
 			ga('send', 'event', {
 				eventCategory: 'photosMd',
 				eventAction: 'Next',
@@ -652,7 +652,7 @@ var photosMd = {
 			dimmer = section.querySelector('.galerija-dimmer'),
 			controler = section.querySelector('.galerija-controler'),
 			figure = section.querySelectorAll('figure');
-		
+
 		// spin throug figures
 		for (var i = 0; figure.length > i; i++) {
 			// get position
