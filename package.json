@@ -27,10 +27,20 @@
   },
   "homepage": "https://github.com/anejskubic/photos-md#readme",
   "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
+    "babel-preset-latest": "^6.16.0",
     "browser-sync": "^2.18.2",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.1",
+    "gulp-babel": "^6.1.2",
     "gulp-ftp": "^1.1.0",
+    "gulp-minify": "0.0.14",
     "gulp-sass": "^2.3.2"
+  },
+  "babel": {
+    "presets": [
+      "latest"
+    ]
   }
 }
