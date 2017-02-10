@@ -8,7 +8,7 @@
 
 
 // SETTINGS
-var settings = {
+export var settings = {
 		'id': '#galerija',	// id for section
 		'transition': 500,	// animation and transition duration
 		'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
@@ -130,7 +130,6 @@ var settings = {
 		}.init()
 	};
 
-
 // VIDEO
 function video (fig) {
 	// further development
@@ -142,7 +141,7 @@ function video (fig) {
 }
 
 // OPEN full screen
-function open (e) {
+export function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
 	//console.warn(e.target);
@@ -234,7 +233,7 @@ function open (e) {
 	if (settings.debug) console.groupEnd();
 }
 // NEXT image
-function next (e) {
+export function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
 	if (flags.touch.disable) {
@@ -396,7 +395,7 @@ function next (e) {
 		});
 }
 // CLOSE full screen
-function close () {
+export function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
 	if (flags.touch.disable) {
@@ -571,8 +570,8 @@ function resize () {
 		var tmpFig = _position(figure[i]);
 
 		tmpFig.scale = {
-			'x': this.viewport.width / (tmpFig.size.width),
-			'y': this.viewport.height / (tmpFig.size.height),
+			'x': viewport.width / (tmpFig.size.width),
+			'y': viewport.height / (tmpFig.size.height),
 			'init': function () {
 				this.min = this.x > this.y ? this.y : this.x;
 				delete this.init;
@@ -602,16 +601,16 @@ function resize () {
 
 		var div = obj.element.querySelector('div');
 
-		var transform = 'scale(' + obj.scale.min + ') translate(' + obj.translate.x + 'px, ' + (obj.translate.y + (window.pageYOffset - photosMd.viewport.scroll) / obj.scale.min) + 'px)';
-		if (photosMd.settings.debug) {
+		var transform = 'scale(' + obj.scale.min + ') translate(' + obj.translate.x + 'px, ' + (obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min) + 'px)';
+		if (settings.debug) {
 			console.info(transform);
-			console.info(obj.translate.y, photosMd.viewport.scroll, window.pageYOffset, obj.scale.min);
+			console.info(obj.translate.y, viewport.scroll, window.pageYOffset, obj.scale.min);
 		}
 
 		div.style.position = 'fixed';
 		div.style.zIndex = 30;
 		div.style.backgroundColor = 'rgba(0,0,0,.7)';
-		div.style.top = (obj.position.top - window.pageYOffset + photosMd.viewport.scroll) + 'px';
+		div.style.top = (obj.position.top - window.pageYOffset + viewport.scroll) + 'px';
 		div.style.left = obj.position.left + 'px';
 		div.style.height = obj.size.height + 'px';
 		div.style.width = obj.size.width + 'px';
@@ -830,7 +829,7 @@ function _src (slika) {
 }
 
 // INIT
-function init (userSettings) {
+export function init (userSettings) {
 	if (Object.keys(userSettings).length > 0) {
 		if (userSettings.debug !== undefined && userSettings.debug) {
 			console.group('photosMd.init:');
@@ -858,7 +857,7 @@ function init (userSettings) {
 		dimmer = section.querySelector('.galerija-dimmer'),
 		controler = section.querySelector('.galerija-controler'),
 		figure = section.querySelectorAll('figure');
-	
+
 	// spin throug figures
 	for (var i = 0; figure.length > i; i++) {
 		// get position
@@ -866,8 +865,8 @@ function init (userSettings) {
 
 		// calc scale
 		tmpFig.scale = {
-			'x': this.viewport.width / (tmpFig.size.width),
-			'y': this.viewport.height / (tmpFig.size.height),
+			'x': viewport.width / (tmpFig.size.width),
+			'y': viewport.height / (tmpFig.size.height),
 			'init': function () {
 				this.min = this.x > this.y ? this.y : this.x;
 				delete this.init;
@@ -956,6 +955,3 @@ function init (userSettings) {
 		console.groupEnd();
 	}
 }
-
-
-export { init, open, close, next, settings }

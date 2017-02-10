@@ -46,9 +46,9 @@ gulp.task('js', function () {
 });
 
 // WATCH
-gulp.task('watch', ['server'], function () {
+gulp.task('watch', ['js', 'sass'], function () {
     gulp.watch('src/css/photos-md.scss', ['sass']);
-    gulp.watch('src/js/photos-md.js', ['js']);
+    gulp.watch('src/js/*.js', ['js']);
 });
 
 // SERVE
