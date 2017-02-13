@@ -6,7 +6,8 @@
 *.css.map
 *.min.*
 *.log
-/demo
+.htaccess
+/demo/assets
 /dist
 ftp.json
 
