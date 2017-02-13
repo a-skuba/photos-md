@@ -1,6 +1,6 @@
 {
   "name": "photos-md",
-  "version": "1.0.0",
+  "version": "3.0.0-es6",
   "description": "Responsive material design gallery JS library (Google Photos like)",
   "main": "gulpfile.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anejskubic/photos-md.git"
+    "url": "git+https://github.com/a_skuba/photos-md.git"
   },
   "keywords": [
     "photos",
@@ -23,24 +23,21 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/anejskubic/photos-md/issues"
+    "url": "https://github.com/a_skuba/photos-md/issues"
   },
-  "homepage": "https://github.com/anejskubic/photos-md#readme",
+  "homepage": "https://github.com/a_skuba/photos-md#readme",
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-plugin-transform-es2015-modules-umd": "^6.18.0",
+    "babel-preset-env": "^1.1.8",
     "babel-preset-latest": "^6.16.0",
     "browser-sync": "^2.18.2",
+    "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.1",
     "gulp-babel": "^6.1.2",
     "gulp-ftp": "^1.1.0",
     "gulp-minify": "0.0.15",
     "gulp-sass": "^3.1.0"
-  },
-  "babel": {
-    "presets": [
-      "latest"
-    ]
   }
 }

@@ -11,10 +11,12 @@ var gulp = require('gulp'),
     browserSync = require('browser-sync').create(),
     autoprefixer = require('gulp-autoprefixer'),
     ftp = require('gulp-ftp'),
-    ftpData = require('./ftp.json'),
+    del = require('del'),
     babel = require('gulp-babel'),
     minify = require('gulp-minify'),
     sass = require('gulp-sass');
+
+var ftpData = require('./ftp.json');
 
 // SASS
 gulp.task('sass', function () {
@@ -30,38 +32,70 @@ gulp.task('sass', function () {
 
 // JS
 gulp.task('js', function () {
-  return gulp.src('src/js/*.js')
-      .pipe(babel({
-          plugins: ['transform-es2015-modules-umd']
-    }))
-    .pipe(minify({
-        ext: {
-            src: '.js',
-            min:'.min.js'
-        },
-        //exclude: ['/dir'],
-        ignoreFiles: ['.min.js', 'xapp.js']
-    }))
-    .pipe(gulp.dest('dist'));
+    return gulp.src('src/js/*.js')
+        .pipe(babel({
+            //"plugins": ['transform-es2015-modules-umd']
+            "presets": [
+                ["env", {
+                    "targets": {
+                        "browsers": ['last 2 versions', 'safari >= 7']
+                    },
+                    "modules": "umd",
+                    //"include": ['transform-es2015-modules-umd']
+                }]
+            ],
+        }))
+        .pipe(minify({
+            preserveComments: 'some',
+            ext: {
+                src: '.js',
+                min:'.min.js'
+            },
+            output: {
+                comments: 'some'
+            },
+            //exclude: ['/dir'],
+            ignoreFiles: ['.min.js']
+        }))
+        .pipe(gulp.dest('dist'));
 });
 
 // WATCH
-gulp.task('watch', ['js', 'sass'], function () {
+gulp.task('watch', ['build'], function () {
     gulp.watch('src/css/photos-md.scss', ['sass']);
     gulp.watch('src/js/*.js', ['js']);
 });
 
 // SERVE
+gulp.task('serve', ['watch', 'server']);
+// BUILD
+gulp.task('build', ['js', 'sass']);
+
+// DEMO
+gulp.task('demo', ['build'], function () {
+    return gulp.src('dist/photos-md.?(css|js|min.js)')
+        .pipe(gulp.dest('demo/assets'));
+});
+
+// SERVER
 gulp.task('server', function () {
     return browserSync.init({
         files: [
             "dist/**/*.?(css|js|png|jpeg|jpg)",
             "*.?(php|html)"
         ],
-        proxy: "http://pmd.localhost/",
+        proxy: "http://pmd.skuba-buba.com/demo/",
         logFileChanges: true,
         browser: ["chrome"],
         injectChanges: true,
         //startPath: "/demo"
     });
+});
+
+// CLEAN
+gulp.task('clean', function () {
+    return del([
+        'dist/*.css',
+        'dist/*.js'
+    ]);
 });
