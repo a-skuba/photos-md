@@ -1,14 +1,19 @@
-// ==========================================================================
-// photosMd
-// photos-md.js v2.0.0
-// https://github.com/anejskubic/photos-md
-// License: The MIT License (MIT)
-// ES6: http://www.2ality.com/2014/09/es6-modules-final.html
-// ==========================================================================
+/**!
+ * Material design image gallery (similar to Google Photos)
+ * @module photos-md
+ * @version v3.0.0-es6
+ * @author Anej Skubic <anej@skuba-buba.com>
+ * @copyright Anej Skubic 2016
+ * @license MIT License
+ * @link https://github.com/a_skuba/photos-md photos-md
+ */
 
 
-// SETTINGS
-export var settings = {
+//
+// Variables
+//
+
+var settings = {
 		'id': '#galerija',	// id for section
 		'transition': 500,	// animation and transition duration
 		'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
@@ -50,7 +55,7 @@ export var settings = {
 
 					// invalid key
 					try {
-						console.warn('photosMd.settings.merge: (Unvalid user-settings: ' + key + ')');
+						console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
 					} catch (e) { }
 				}
 			}
@@ -61,7 +66,6 @@ export var settings = {
 			}
 		}
 	},
-	// VIEWPORT
 	viewport = {
 		'init': function () {
 			// set document element
@@ -81,9 +85,7 @@ export var settings = {
 			return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
 		}
 	}.init(),
-	// FIGUREs
 	fig = [],
-	// IMG cache
 	imgsBuffer = {
 		'preview': {},
 		'full': {},
@@ -109,7 +111,6 @@ export var settings = {
 			return this;
 		}
 	},
-	// FLAGS
 	flags = {
 		'imgNextTransitionProgress': 0,
 		'imgGa': 0,
@@ -130,7 +131,16 @@ export var settings = {
 		}.init()
 	};
 
-// VIDEO
+
+//
+// Methods
+//
+
+/**
+ * Handle video figure (future implementation)
+ * @private
+ * @param {Element} fig	The element to operate..
+ */
 function video (fig) {
 	// further development
 	if (settings.debug) {
@@ -140,8 +150,12 @@ function video (fig) {
 	}
 }
 
-// OPEN full screen
-export function open (e) {
+/**
+ * Open image in full screen
+ * @public
+ * @param {Event} e	The event to open target from
+ */
+function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
 	//console.warn(e.target);
@@ -165,16 +179,16 @@ export function open (e) {
 	//var arrows = controler.querySelector('.galerija-arrows');
 	//var header = controler.querySelector('.galerija-header');
 
-	var transform = 'scale(' + element.scale.min + ') translate(' + element.translate.x + 'px, ' + (element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min) + 'px)';
+	var transform = `scale(${element.scale.min}) translate(${element.translate.x}px, ${(element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min)}px)`;
 	if (settings.debug) {
 		console.log(transform);
 		console.log(element.translate.y, viewport.scroll, window.pageYOffset, element.scale.min);
 	}
 
-	dimmer.style.transition = 'opacity ' + settings.transition * 1.5 + 'ms ease-out';
+	dimmer.style.transition = `opacity ${settings.transition * 1.5}ms ease-out`;
 	dimmer.style.opacity = 0;
 
-	div.style.transition = 'transform ' + settings.transition + 'ms ease-out, opacity ' + settings.transition + 'ms ease-out';
+	div.style.transition = `transform ${settings.transition}ms ease-out, opacity ${settings.transition}ms ease-out`;
 	div.style.zIndex = 30;
 	div.style.backgroundColor = 'rgba(0,0,0,.7)';
 
@@ -198,7 +212,7 @@ export function open (e) {
 	//div.offsetHeight;
 
 	if (!element.element.classList.contains('video'))
-		img.setAttribute('src', _src(img));
+		img.setAttribute('src', src(img));
 
 	dimmer.classList.remove('close');
 	dimmer.classList.add('open');
@@ -232,8 +246,14 @@ export function open (e) {
 
 	if (settings.debug) console.groupEnd();
 }
-// NEXT image
-export function next (e) {
+
+/**
+ * Transition to next image
+ * @public
+ * @param {String|Event} e	String or object with class containing Left or Right
+ * @returns
+ */
+function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
 	if (flags.touch.disable) {
@@ -246,11 +266,11 @@ export function next (e) {
 	//console.log(e, this);
 	if (settings.debug) console.info('Type of event/argument: ', typeof e);
 
-	if ((typeof e === 'string' && e == 'left') || (typeof e === 'object' && e.target.classList.contains('icon-arrow-left'))) {
+	if ((typeof e === 'string' && e.toLowerCase() == 'left') || (typeof e === 'object' && e.target.classList.contains('left'))) {
 		if (settings.debug) console.info('Direction: Left');
 		direction = -1;
 	}
-	else if ((typeof e === 'string' && e == 'right') || (typeof e === 'object' && e.target.classList.contains('icon-arrow-right'))) {
+	else if ((typeof e === 'string' && e.toLowerCase() == 'right') || (typeof e === 'object' && e.target.classList.contains('right'))) {
 		if (settings.debug) console.info('Direction: Right');
 		direction = 1;
 	}
@@ -281,7 +301,7 @@ export function next (e) {
 		return;
 	}
 	else {
-		if (settings.debug) console.info('No. of figs: (Figs: ' + figs.length + ', visible Figs:' + visibleFigs.length + ')');
+		if (settings.debug) console.info(`No. of figs: (Figs: ${figs.length}, visible Figs:${visibleFigs.length})`);
 	}
 
 	// get current and next div serial number
@@ -303,8 +323,8 @@ export function next (e) {
 	}
 
 	if (settings.debug) {
-		console.info('Current fig:' + curr);
-		console.info('Next fig: ' + next, fig[next].element);
+		console.info(`Current fig: ${curr}`);
+		console.info(`Next fig: ${next}, ${fig[next].element}`);
 	}
 
 	// fix figure width size
@@ -320,12 +340,12 @@ export function next (e) {
 	var translateAnimation = (direction * viewport.width / 2 * 0.3);
 
 	// calc first & final position
-	var transformFirst = 'scale(' + fig[next].scale.min + ') translate(' + (fig[next].translate.x + translateAnimation) + 'px, ' + (fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min) + 'px)',
-		transform = 'scale(' + fig[next].scale.min + ') translate(' + fig[next].translate.x + 'px, ' + (fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min) + 'px)';
+	var transformFirst = `scale(${fig[next].scale.min}) translate(${(fig[next].translate.x + translateAnimation)}px, ${(fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min)}px)`,
+		transform = `scale(${fig[next].scale.min}) translate(${fig[next].translate.x}px, ${(fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min)}px)`;
 
 	if (settings.debug) {
-		console.info('1st transform: ' + transformFirst);
-		console.info('2nd transform: ' + transform);
+		console.info(`1st transform: ${transformFirst}`);
+		console.info(`2nd transform: ${transform}`);
 	}
 
 	// prepare next div for transition, 0s tranistion
@@ -343,14 +363,14 @@ export function next (e) {
 	nextDiv.offsetHeight;
 
 	// change transition timing for animation
-	nextDiv.style.transition = 'transform ' + settings.transition + 'ms ease-out, opacity ' + settings.transition + 'ms ease-out';
+	nextDiv.style.transition = `transform ${settings.transition}ms ease-out, opacity ${settings.transition}ms ease-out`;
 
 	if (!fig[next].element.classList.contains('video'))
-		nextImg.setAttribute('src', _src(nextImg));
+		nextImg.setAttribute('src', src(nextImg));
 
 	// replace transform->translateX value
 	var currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation),
-		currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, 'translate(' + currTranslateX + 'px');
+		currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, `translate(${currTranslateX}px`);
 	// apply exit to current div
 	currDiv.style.transform = currTranslate;
 	currDiv.style.opacity = 0;
@@ -367,7 +387,7 @@ export function next (e) {
 		//currDiv.style.top = '';
 		//currDiv.style.left = '';
 		if (!fig[curr].element.classList.contains('video'))
-			currImg.setAttribute('src', _src(currImg));
+			currImg.setAttribute('src', src(currImg));
 		currDiv.removeAttribute('style');
 		fig[curr].element.removeAttribute('style');
 
@@ -394,8 +414,12 @@ export function next (e) {
 			eventValue: flags.imgGa
 		});
 }
-// CLOSE full screen
-export function close () {
+
+/**
+ * Close fullscreen gallery
+ * @public
+ */
+function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
 	if (flags.touch.disable) {
@@ -434,7 +458,7 @@ export function close () {
 		element.removeAttribute('style');
 		figcaption.removeAttribute('style');
 		if (!element.classList.contains('video'))
-			img.setAttribute('src', _src(img));
+			img.setAttribute('src', src(img));
 		dimmer.removeAttribute('style');
 		flags.touch.disable = 0;
 	}, settings.transition);
@@ -459,8 +483,12 @@ export function close () {
 	if (settings.debug) console.groupEnd();
 }
 
-
-// FILTER
+/**
+ * Function to filter images
+ * @private
+ * @param {Event} e	Event with target object to filter
+ * @returns
+ */
 function filter (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.filter:');
 	// dont execute on same filter
@@ -478,8 +506,7 @@ function filter (e) {
 
 	// more button handling
 	if (e.target.classList.contains('more') || more.getAttribute('hidden') === null) {
-		//console.log('more');
-		//var filtere.target.getAttribute('filter-data')
+		console.log('More button hidden');
 		more.setAttribute('hidden', true);
 	}
 
@@ -497,7 +524,7 @@ function filter (e) {
 	for (var i = 0; i < figs.length; i++) {
 		// copy data-filter atribute to variable
 		var set = figs[i].querySelector('img').getAttribute('data-filter');
-		if (settings.debug) console.info('Data filter: ' + set);
+		if (settings.debug) console.info(`Data filter: ${set}`);
 
 		// check if filter name is in given varirable & set show/hide class
 		if (set.indexOf(filter) === -1) {
@@ -548,7 +575,11 @@ function filter (e) {
 
 	if (settings.debug) console.groupEnd();
 }
-// WINDOW RESIZE
+
+/**
+ * Recalculate objects on window resize/orientation change
+ * @private
+ */
 function resize () {
 	if (settings.debug) {
 		console.groupCollapsed('photosMd.resize:');
@@ -567,7 +598,7 @@ function resize () {
 		// skip hidden elements
 		if (!(figure[i].getAttribute('hidden') == null)) continue;
 
-		var tmpFig = _position(figure[i]);
+		var tmpFig = position(figure[i]);
 
 		tmpFig.scale = {
 			'x': viewport.width / (tmpFig.size.width),
@@ -579,7 +610,7 @@ function resize () {
 			}
 		}.init();
 
-		tmpFig.translate = _translate(tmpFig);
+		tmpFig.translate = translate(tmpFig);
 		tmpFig.element = figure[i];
 
 		if (settings.debug) console.info(tmpFig.translate);
@@ -601,7 +632,7 @@ function resize () {
 
 		var div = obj.element.querySelector('div');
 
-		var transform = 'scale(' + obj.scale.min + ') translate(' + obj.translate.x + 'px, ' + (obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min) + 'px)';
+		var transform = `scale(${obj.scale.min}) translate(${obj.translate.x}px, ${(obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min)}px)`;
 		if (settings.debug) {
 			console.info(transform);
 			console.info(obj.translate.y, viewport.scroll, window.pageYOffset, obj.scale.min);
@@ -628,8 +659,12 @@ function resize () {
 	}
 }
 
-// WINDOW KEYEVNTS
-function _keyevent (e) {
+/**
+ * Keyevent handler
+ * @private
+ * @param {Event} e	Event with target
+ */
+function keyevent(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.keyevent:');
 	// disable multiple trigers
 	if (flags.touch.disable) {
@@ -641,7 +676,7 @@ function _keyevent (e) {
 	// pass and test event object
 	e = e || window.event;
 	if (settings.debug) console.info('KEY: ', e.keyCode, e.key);
-	if (e.keyCode != 27 && e.keyCode != 37 && e.keyCode != 39) {
+	if (e.keyCode != 27 && e.keyCode != 37 && e.keyCode != 39 && e.keyCode != 40) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -662,7 +697,7 @@ function _keyevent (e) {
 		// ESCAPE:	27
 		// LEFT: 	37
 		// RIGHT:	39
-		if (e.keyCode == 27) {
+		if (e.keyCode == 27 || e.keyCode == 40) {
 			close();
 			//if (settings.debug) console.groupEnd(); // ni potreben ker je timer zgoraj
 			return;
@@ -678,8 +713,13 @@ function _keyevent (e) {
 		if (settings.debug) console.groupEnd();
 	}
 }
-// TOUCH events
-function _touchStart (e) {
+
+/**
+ * init start position on touch
+ * @private
+ * @param {Event} e	Touch event object
+ */
+function touchStart (e) {
 	if (flags.touch.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
@@ -692,7 +732,14 @@ function _touchStart (e) {
 
 	//flags.touch.disable = 0;
 }
-function _touchMove (e) {
+
+/**
+ * Follow touch event path
+ * @private
+ * @param {Event} e	Touch event object
+ * @returns {Boolean} False to prevent default action (scroll)
+ */
+function touchMove (e) {
 	if (flags.touch.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
@@ -707,7 +754,13 @@ function _touchMove (e) {
 	//flags.touch.disable = 0;
 	return false;
 }
-function _touchEnd (e) {
+
+/**
+ * Execute action on touch
+ * @private
+ * @param {Event} e Touch event object
+ */
+function touchEnd (e) {
 	if (flags.touch.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
@@ -747,8 +800,13 @@ function _touchEnd (e) {
 	//flags.touch.disable = 0;
 }
 
-// POSITION of figs
-function _position (el) {
+/**
+ * Calculate position of element
+ * @private
+ * @param {Element} el	Element to calculate position
+ * @returns {Object}	Object with size, position and margin values
+ */
+function position (el) {
 	el.offsetHeight;
 
 	var _x = 0,
@@ -782,16 +840,28 @@ function _position (el) {
 		margin: _margin
 	};
 }
-// TRANSLATE Calc function
-function _translate (el) {
+
+/**
+ * Calculate translate
+ * @private
+ * @param {Element} el	Element to calculate translate for
+ * @returns {Object}	Object with translate coordinates
+ */
+function translate (el) {
 	/* izračuna center slike in center viewporta, ter ju odšteje, nato pa doda še preostanek screena da je slika na sredini -- MYSTIC SHIT :P*/
 	return {
 		'x': (el.scale.y < el.scale.x ? (viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 1,
 		'y': (el.scale.y > el.scale.x ? (viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 1
 	};
 }
-// IMG preview <-> full
-function _src (slika) {
+
+/**
+ * Change image source (size)
+ * @private
+ * @param {Element} slika	Image element
+ * @returns {String}	Url path of new image
+ */
+function src (slika) {
 	if (settings.debug) console.groupCollapsed('photosMd.src:');
 	// no preview settings
 	if (!settings.preview) {
@@ -804,7 +874,7 @@ function _src (slika) {
 
 	// get src string
 	var src = slika.getAttribute('src');
-	if (settings.debug) console.info('Old: ' + src);
+	if (settings.debug) console.info(`Old: ${src}`);
 
 	// add it to buffer
 	imgsBuffer.add(src);
@@ -819,7 +889,7 @@ function _src (slika) {
 	else {
 		return 0;
 	}
-	if (settings.debug) console.info('New: ' + src);
+	if (settings.debug) console.info(`New: ${src}`);
 
 	// add to buffer
 	imgsBuffer.add(src);
@@ -828,8 +898,12 @@ function _src (slika) {
 	return src;
 }
 
-// INIT
-export function init (userSettings) {
+/**
+ * Initialization function
+ * @public
+ * @param {Object|JSON} userSettings	Settings for photosMd
+ */
+function init (userSettings) {
 	if (Object.keys(userSettings).length > 0) {
 		if (userSettings.debug !== undefined && userSettings.debug) {
 			console.group('photosMd.init:');
@@ -861,7 +935,7 @@ export function init (userSettings) {
 	// spin throug figures
 	for (var i = 0; figure.length > i; i++) {
 		// get position
-		var tmpFig = _position(figure[i]);
+		var tmpFig = position(figure[i]);
 
 		// calc scale
 		tmpFig.scale = {
@@ -875,7 +949,7 @@ export function init (userSettings) {
 		}.init();
 
 		// get translation values
-		tmpFig.translate = _translate(tmpFig);
+		tmpFig.translate = translate(tmpFig);
 
 		// add reference to element and url history
 		tmpFig.element = figure[i];
@@ -885,8 +959,7 @@ export function init (userSettings) {
 		fig.push(tmpFig);
 
 		// bind event listner for open
-		var evnt = open;
-		figure[i].addEventListener('click', evnt, false);
+		figure[i].addEventListener('click', open, false);
 	}
 
 	// add event listners for control buttons in full view mode
@@ -900,9 +973,9 @@ export function init (userSettings) {
 		filterBtns[i].addEventListener('click', filter, false);
 	}
 	// add event listner for keyboard
-	document.addEventListener('keydown', _keyevent, false);
+	document.addEventListener('keydown', keyevent, false);
 	if (document.attachEvent)
-		document.attachEvent('keydown', _keyevent);
+		document.attachEvent('keydown', keyevent);
 
 	// add event listner for resize or orientation change
 	window.addEventListener('resize', resize, false);
@@ -910,9 +983,9 @@ export function init (userSettings) {
 
 	// add touch event listner
 	if (settings.touch.enable) {
-		document.querySelector('.galerija-arrows').addEventListener('touchstart', _touchStart, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchmove', _touchMove, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchend', _touchEnd, false);
+		document.querySelector('.galerija-arrows').addEventListener('touchstart', touchStart, false);
+		document.querySelector('.galerija-arrows').addEventListener('touchmove', touchMove, false);
+		document.querySelector('.galerija-arrows').addEventListener('touchend', touchEnd, false);
 	}
 
 	// link blocker on figcaption>a clicks (SEO)
@@ -955,3 +1028,5 @@ export function init (userSettings) {
 		console.groupEnd();
 	}
 }
+
+export { settings, open, next, close, init }
