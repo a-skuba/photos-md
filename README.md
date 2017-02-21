@@ -1,7 +1,8 @@
 # photos-md
 Responsive material design gallery JS library
 
-[Check the demo on CodePen](http://codepen.io/anejskubic/pen/RoLXBX/)
+[Check the demo on CodePen](http://codepen.io/a_skuba/pen/apbEOy/)
+[Check the demo on my host](http://www.skuba-buba.com/share/photos-md/)
 
 ## Why?
 I wanted Google Photos like gallery with all the cool UX transitions and also SEO ready gallery. Sure, there is thones of galleries out there, but I wanted to keep things simple, preformant and nice looking.
