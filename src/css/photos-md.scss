@@ -1,66 +1,60 @@
 @import "mixin";
-@import "font"; // inside `_font.scss` set path to font files!
 
 // ==============================================================
-// SETTINGS
+// PhotosMD SASS MIXIN
 // ==============================================================
 
-$id: '#galerija';
+//
+// @MIXIN
+//
+// We use this mixin to create a default photosMd layout.
+//
+// $transition-duration - transition duration for photosMd in ms	Default: 400
+// $filter-active - neki neki. 										Default: #455a64
+// $filter-inactive - neki neki. 									Default: #adadad
+// $loadmore-bg - neki neki. 										Default: #455a64
+// $loadmore-bg-hover - neki neki. 									Default: #455a64
+// $loadmore-text - neki neki. 										Default: #fff
+// $zoom-bg - full view settings 									Default: #000
+// $zoom-header - neki neki. 										Default: #000
+// $zoom-header-size - neki neki. 									Default: 3.5em
+// $navigation-back - navigation next/prev button settings			Default: #fff
+// $navigation-back-circle - neki neki. 							Default: #555
+// $navigation-size - neki neki. 									Default: 2.5em
+// $navigation-size-small - neki neki. 								Default: 1.5em
+// $navigation-next - neki neki. 									Default: #fff
+// $navigation-next-circle - neki neki. 							Default: #efefef
+// $figure-size - gridview height of image							Default: 10rem
 
-// transition duration for photosMd in ms
-$transition-duration: 400;
-// background color
-$background: transparent;
-
-$filter-active: #455a64;
-$filter-inactive: #adadad;
-$loadmore-bg: #455a64;
-$loadmore-bg-hover: #455a64;
-$loadmore-text: #fff;
-
-// full view settings
-$zoom-bg: #000;
-$zoom-header: #000;
-$zoom-header-size: 3.5em;
-
-// back button in fullview
-$navigation-back: #fff;
-$navigation-back-circle: #555;
-
-// navigation next/prev button settings
-$navigation-size: 2.5em;
-$navigation-size-small: 1.5em;
-$navigation-next: #fff;
-$navigation-next-circle: #efefef;
-
-// gridview height of image
-$figure-size: 10rem;
-
-
-// ==============================================================
-// DEFINITION
-// ==============================================================
-
-html, body {
-	&.lock {
-		overflow: hidden;
+@mixin photosMd(
+	$transition-duration: 400,
+	$filter-active: #455a64,
+	$filter-inactive: #adadad,
+	$loadmore-bg: #455a64,
+	$loadmore-bg-hover: #455a64,
+	$loadmore-text: #fff,
+	$zoom-bg: #000,
+	$zoom-header: #000,
+	$zoom-header-size: 3.5em,
+	$navigation-back: #fff,
+	$navigation-back-circle: #555,
+	$navigation-size: 2.5em,
+	$navigation-size-small: 1.5em,
+	$navigation-next: #fff,
+	$navigation-next-circle: #efefef,
+	$figure-size: 10rem
+) {
+	@at-root{
+		html, body {
+			&.lock {
+				overflow: hidden;
+			}
+		}
 	}
-}
-
-#{$id} {
-	//padding-bottom: 5em;
-	width: 100%;
-	height: auto;
-	background-color: $background;
 
 	transition: height #{$transition-duration}ms ease-out;
 	@include flexie(row wrap, center, flex-start);
 	align-content: flex-start;
-
-	@media screen and (max-width: 705px) {
-		//@include flexie(column wrap, flex-start, center);
-	}
-	//transition: min-height .5s ease-out;
 
 	header {
 		width: 100%;
@@ -151,11 +145,13 @@ html, body {
 			background: linear-gradient(0deg, transparent, transparentize($zoom-header, 0.4));
 			@include flexie(row nowrap, flex-start, center);
 
-			span {
-				color: $navigation-back;
-				margin: 5px 1em;
+			button {
+				background: transparent;
+				outline: none;
+				border: none;
 				padding: .8em;
-				border-radius: 2em;
+				margin: 8px 1em;
+				border-radius: 100%;
 
 				&:hover {
 					cursor: pointer;
@@ -163,6 +159,13 @@ html, body {
 				&:active {
 					background: $navigation-back-circle;
 				}
+			}
+
+			svg {
+				display: block;
+				width: 16px;
+				height: 16px;
+				fill: $navigation-back;
 			}
 		}
 
@@ -189,11 +192,13 @@ html, body {
 					//transform: scale(1.25);
 				}
 
-				span {
-					font-size: $navigation-size;
+				svg {
+					display: block;
+					width: $navigation-size;
+					height: $navigation-size;
 					margin: #{$navigation-size/8};
 					padding: #{$navigation-size/8};
-					color: white;
+					fill: white;
 					border-radius: $navigation-size;
 					background: transparentize(#424242, 0.54);
 
@@ -218,7 +223,7 @@ html, body {
 		position: relative;
 		overflow: hidden;
 		background-color: transparent;
-		
+
 		margin: 5px;
 
 		box-shadow: 1px 1px 10px 2px rgba(0, 0, 0, .2);
@@ -228,7 +233,7 @@ html, body {
 		&.zoom {
 			box-shadow: 0px 0px 0px 0px transparent;
 		}
-		
+
 		&:hover:not(.zoom) {
 			background-color: transparent;
 			box-shadow: 0px 0px 0px transparent;
@@ -262,7 +267,6 @@ html, body {
 
 		img {
 			height: 100%;
-
 			transition: all #{$transition-duration/2}ms ease-in-out;
 		}
 
@@ -316,4 +320,13 @@ html, body {
 			}
 		}
 	}
+}
+
+
+#galerija {
+	background: transparent;
+	width: 100%;
+	height: auto;
+
+	@include photosMd;
 }

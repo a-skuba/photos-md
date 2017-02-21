@@ -13,6 +13,8 @@ var gulp = require('gulp'),
     ftp = require('gulp-ftp'),
     del = require('del'),
     babel = require('gulp-babel'),
+    svgstore = require('gulp-svgstore'),
+    svgmin = require('gulp-svgmin'),
     minify = require('gulp-minify'),
     sass = require('gulp-sass');
 
@@ -60,6 +62,20 @@ gulp.task('js', function () {
         .pipe(gulp.dest('dist'));
 });
 
+
+// SVG
+gulp.task('svg', function () {
+    return gulp
+        .src('src/sprite/!(symbol-defs)*.svg')
+        .pipe(svgmin({
+            plugins: [
+                { removeDesc: true }
+            ]
+        }))
+        .pipe(svgstore())
+        .pipe(gulp.dest('dist'));
+});
+
 // WATCH
 gulp.task('watch', ['build'], function () {
     gulp.watch('src/css/photos-md.scss', ['sass']);
@@ -69,11 +85,16 @@ gulp.task('watch', ['build'], function () {
 // SERVE
 gulp.task('serve', ['watch', 'server']);
 // BUILD
-gulp.task('build', ['js', 'sass']);
+gulp.task('build', ['js', 'sass', 'svg']);
+// UPLOAD
+gulp.task('upload', ['demo'], function () {
+    return gulp.src('demo/**/*')
+        .pipe(ftp(ftpData));
+});
 
 // DEMO
 gulp.task('demo', ['build'], function () {
-    return gulp.src('dist/photos-md.?(css|js|min.js)')
+    return gulp.src(['dist/photos-md.?(css|js|min.js)', 'dist/sprite.svg'])
         .pipe(gulp.dest('demo/assets'));
 });
 

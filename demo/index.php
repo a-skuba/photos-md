@@ -12,7 +12,6 @@
 	<title>Demo photos-md</title>
 
 	<meta name="description" content="PhotosMd is material design image gallery plugin.">
-	<!--156c-->
 	<meta name="keywords" content="photos, material, design, gallery, js, plugin">
 	<meta name="author" content="Anej Skubic">
 
@@ -23,18 +22,15 @@
 	<meta property="og:url" content="/index">
 
 	<style>
-		a {
-			color: black;
-			font-family: 'Open Sans';
-			text-decoration: none;
-		}
+		a { color: black; font-family: 'Open Sans'; text-decoration: none; }
 	</style>
 	<link href="assets/photos-md.css" type="text/css" rel="stylesheet">
 	<script src="assets/photos-md.js"></script>
-
 </head>
-<body><!--oncontextmenu="return false;">-->
-
+<body>
+	<div hidden>
+		<?php include 'assets/sprite.svg'; ?>
+	</div>
 	<section id="galerija">
 		<header>
 			<h2>Gallery</h2>
@@ -48,38 +44,46 @@
 		</header>
 		<div class="galerija-dimmer close"></div>
 		<div class="galerija-controler close">
-			<div class="galerija-header"><span class="icon-back"></span></div>
+			<div class="galerija-header">
+				<button type="button" class="icon-back" aria-label="Back, return to grid view">
+					<svg><use xlink:href="#back"></use></svg>
+				</button>
+			</div>
 			<div class="galerija-arrows">
-				<div><span class="icon-arrow-left left"></span></div>
-				<div><span class="icon-arrow-right right"></span></div>
+				<div>
+					<svg class="icon-left"><use xlink:href="#left"></use></svg>
+				</div>
+				<div>
+					<svg class="icon-right"><use xlink:href="#right"></use></svg>
+				</div>
 			</div>
 		</div>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/01.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/01.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=01.jpg">Beautiful view</a></figcaption>
 		</figure>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/02.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/02.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=02.jpg">City</a></figcaption>
 		</figure>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/03.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/03.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=03.jpg">Lights</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/04.jpg" data-filter="all sth1 sth2" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/04.jpg" data-filter="all sth1 sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=04.jpg">Beach</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/05.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/05.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=05.jpg">Mountains</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/06.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/06.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=06.jpg">Dude</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/07.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/07.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=07.jpg">Forest</a></figcaption>
 		</figure>
 		<footer>
@@ -89,7 +93,7 @@
 	<script>
 		photosMd.init({
 			'id': '#galerija',
-			'debug': 0,
+			'debug': <?= isset($_GET['debug']) ? 1 : 0 ?>,
 			'preview': 0,
 			'transition': 400
 		});
