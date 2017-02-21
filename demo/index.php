@@ -45,16 +45,16 @@
 		<div class="galerija-dimmer close"></div>
 		<div class="galerija-controler close">
 			<div class="galerija-header">
-				<button type="button" class="icon-back" aria-label="Back, return to grid view">
+				<button type="button" class="back" aria-label="Back, return to grid view">
 					<svg><use xlink:href="#back"></use></svg>
 				</button>
 			</div>
 			<div class="galerija-arrows">
 				<div>
-					<svg class="icon-left"><use xlink:href="#left"></use></svg>
+					<svg class="left"><use xlink:href="#left"></use></svg>
 				</div>
 				<div>
-					<svg class="icon-right"><use xlink:href="#right"></use></svg>
+					<svg class="right"><use xlink:href="#right"></use></svg>
 				</div>
 			</div>
 		</div>

@@ -963,9 +963,9 @@ function init (userSettings) {
 	}
 
 	// add event listners for control buttons in full view mode
-	controler.querySelector('.galerija-controler .icon-back').addEventListener('click', close, false);
-	controler.querySelector('.galerija-controler .icon-left').addEventListener('click', next, false);
-	controler.querySelector('.galerija-controler .icon-right').addEventListener('click', next, false);
+	controler.querySelector('.galerija-controler .back').addEventListener('click', close, false);
+	controler.querySelector('.galerija-controler .left').addEventListener('click', next, false);
+	controler.querySelector('.galerija-controler .right').addEventListener('click', next, false);
 
 	// add event listners for filter buttons
 	var filterBtns = section.querySelectorAll('.filter button[name="filter"], footer button[name="filter"][data-filter="all"]');
