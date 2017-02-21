@@ -196,8 +196,8 @@
 					display: block;
 					width: $navigation-size;
 					height: $navigation-size;
-					margin: #{$navigation-size/8};
-					padding: #{$navigation-size/8};
+					margin: #{$navigation-size/2};
+					padding: #{$navigation-size/2};
 					fill: white;
 					border-radius: $navigation-size;
 					background: transparentize(#424242, 0.54);
