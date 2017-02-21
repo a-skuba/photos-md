@@ -29,7 +29,7 @@
 </head>
 <body>
 	<div hidden>
-		<?php include 'assets/sprite.svg'; ?>
+		<?= file_get_contents('assets/sprite.svg') ?>
 	</div>
 	<section id="galerija">
 		<header>
