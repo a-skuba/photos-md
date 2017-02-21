@@ -9,6 +9,7 @@
 /demo
 /dist
 ftp.json
+.htaccess
 
 # OS generated files #
 .DS_Store
