@@ -52,6 +52,12 @@
 		}
 	}
 
+	button[name="filter"][data-filter] {
+		&:hover {
+			cursor: pointer;
+		}
+	}
+
 	transition: height #{$transition-duration}ms ease-out;
 	@include flexie(row wrap, center, flex-start);
 	align-content: flex-start;
@@ -87,7 +93,6 @@
 
 				&:not(.active):hover {
 					color: $filter-active;
-					cursor: pointer;
 				}
 
 				&.active {
