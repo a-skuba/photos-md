@@ -158,12 +158,8 @@ function video (fig) {
 function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
-	//console.warn(e.target);
-	var element = e.target;
-	while (element && !(element.tagName == 'FIGURE')) {
-		element = element.parentNode;
-	}
-	//console.log(element);
+	//console.warn(e.currentTarget);
+	var element = e.currentTarget;
 	for (var i = 0; i < fig.length; i++) {
 		if (element == fig[i].element) element = fig[i];
 	}
@@ -264,13 +260,13 @@ function next (e) {
 	// determine direction
 	var direction = 0;
 	//console.log(e, this);
-	if (settings.debug) console.info('Type of event/argument: ', typeof e);
+	if (settings.debug) console.info('Type of event/argument: [' + typeof e + ']', e);
 
-	if ((typeof e === 'string' && e.toLowerCase() == 'left') || (typeof e === 'object' && e.target.classList.contains('left'))) {
+	if ((typeof e === 'string' && e.toLowerCase() == 'left') || (typeof e === 'object' && e.currentTarget.classList.contains('left'))) {
 		if (settings.debug) console.info('Direction: Left');
 		direction = -1;
 	}
-	else if ((typeof e === 'string' && e.toLowerCase() == 'right') || (typeof e === 'object' && e.target.classList.contains('right'))) {
+	else if ((typeof e === 'string' && e.toLowerCase() == 'right') || (typeof e === 'object' && e.currentTarget.classList.contains('right'))) {
 		if (settings.debug) console.info('Direction: Right');
 		direction = 1;
 	}
@@ -492,31 +488,31 @@ function close () {
 function filter (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.filter:');
 	// dont execute on same filter
-	if (e.target.classList.contains('active') && !e.target.classList.contains('more')) {
+	if (e.currentTarget.classList.contains('active') && !e.currentTarget.classList.contains('more')) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
 
-	if (settings.debug) console.log(e.target);
+	if (settings.debug) console.log(e.currentTarget);
 
 	// get filter tag
-	var filter = e.target.getAttribute('data-filter'),
+	var filter = e.currentTarget.getAttribute('data-filter'),
 		galerija = document.querySelector(settings.id),
 		more = galerija.querySelector('button.more');
 
 	// more button handling
-	if (e.target.classList.contains('more') || more.getAttribute('hidden') === null) {
-		console.log('More button hidden');
+	if (e.currentTarget.classList.contains('more') || more.getAttribute('hidden') === null) {
+		if (settings.debug) console.log('More button hidden');
 		more.setAttribute('hidden', true);
 	}
 
 	// set active filter button
-	var active = e.target.parentNode.querySelector('button[name="filter"].active');
+	var active = e.currentTarget.parentNode.querySelector('button[name="filter"].active');
 	if (active === null) {
-		active = e.target.parentNode.querySelector('button[data-filter="all"]');
+		active = e.currentTarget.parentNode.querySelector('button[data-filter="all"]');
 	}
 	active.classList.remove('active');
-	e.target.classList.add('active');
+	e.currentTarget.classList.add('active');
 
 	// hide or show images
 	var figs = galerija.querySelectorAll('figure');
@@ -1023,7 +1019,7 @@ function init (userSettings) {
 	}
 
 	if (settings.debug) {
-		console.info('Object photosMd: ', this);
+		//console.info('Object photosMd: ', this);
 		//console.profileEnd();
 		console.groupEnd();
 	}
