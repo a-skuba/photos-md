@@ -83,7 +83,7 @@ gulp.task('watch', ['build'], function () {
 });
 
 // SERVE
-gulp.task('serve', ['watch', 'server']);
+gulp.task('serve', ['dev', 'server']);
 // BUILD
 gulp.task('build', ['js', 'sass', 'svg']);
 // UPLOAD
@@ -97,6 +97,10 @@ gulp.task('demo', ['build'], function () {
     return gulp.src(['dist/photos-md.?(css|js|min.js)', 'dist/sprite.svg'])
         .pipe(gulp.dest('demo/assets'));
 });
+// DEV
+gulp.task('dev', ['demo'], function () {
+    gulp.watch('src/**/*', ['demo']);
+});
 
 // SERVER
 gulp.task('server', function () {
@@ -105,7 +109,7 @@ gulp.task('server', function () {
             "dist/**/*.?(css|js|png|jpeg|jpg)",
             "*.?(php|html)"
         ],
-        proxy: "http://pmd.skuba-buba.com/demo/",
+        proxy: "http://pmd.anej/",
         logFileChanges: true,
         browser: ["chrome"],
         injectChanges: true,
