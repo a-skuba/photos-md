@@ -1012,7 +1012,7 @@ function init (userSettings) {
 				if (settings.id.search('#') >= 0)
 					window.location.hash = settings.id;
 
-				open({ 'target': fig[j].element });
+				open({ 'currentTarget': fig[j].element });
 				break;
 			}
 		}
