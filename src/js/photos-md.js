@@ -14,58 +14,58 @@
 //
 
 var settings = {
-		'id': '#galerija',	// id for section
-		'transition': 500,	// animation and transition duration
-		'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
-		'debug': 0,
-		'touch': {
-			enable: true,   // enable touch gestures
-			minX: 30,
-			maxX: 30,
-			minY: 50,
-			maxY: 60,
-		},
-		'create': [],
-		'preview': 1,
-		// MERGE settings
-		'merge': function (userSettings) {
-			// first merge debug, so logs can be done properly
-			if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
-				this.debug = 1;
-			}
-			if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
+	'id': '#galerija',	// id for section
+	'transition': 500,	// animation and transition duration
+	'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
+	'debug': 0,
+	'touch': {
+		enable: true,   // enable touch gestures
+		minX: 30,
+		maxX: 30,
+		minY: 50,
+		maxY: 60,
+	},
+	'create': [],
+	'preview': 1,
+	// MERGE settings
+	'merge': function (userSettings) {
+		// first merge debug, so logs can be done properly
+		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
+			this.debug = 1;
+		}
+		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
 
-			// spin through array and merge one by one
-			for (var key in userSettings) {
+		// spin through array and merge one by one
+		for (var key in userSettings) {
 
-				// test if both has the key property
-				if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
+			// test if both has the key property
+			if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
 
-					// test for id
-					if (key == 'id' && userSettings.id.search('#') < 0) {
-						console.warn('photos-md: (No # in ID)');
-						//break;
-					}
-					// merge
-					this[key] = userSettings[key];
-
-					if (this.debug) console.info(key + ' merged');
+				// test for id
+				if (key == 'id' && userSettings.id.search('#') < 0) {
+					console.warn('photos-md: (No # in ID)');
+					//break;
 				}
-				else {
+				// merge
+				this[key] = userSettings[key];
 
-					// invalid key
-					try {
-						console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
-					} catch (e) { }
-				}
+				if (this.debug) console.info(key + ' merged');
 			}
+			else {
 
-			if (this.debug) {
-				console.info(this);
-				console.groupEnd();
+				// invalid key
+				try {
+					console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
+				} catch (e) { }
 			}
 		}
-	},
+
+		if (this.debug) {
+			console.info(this);
+			console.groupEnd();
+		}
+	}
+},
 	viewport = {
 		'init': function () {
 			// set document element
@@ -114,22 +114,23 @@ var settings = {
 	flags = {
 		'imgNextTransitionProgress': 0,
 		'imgGa': 0,
-		'touch': {
-			'disable': 0,
-			'init': function () {
-				this.start = {
-					x: 0,
-					y: 0
-				};
-				this.end = {
-					x: 0,
-					y: 0
-				};
+	},
+	pointer = {
+		'disable': 0,
+		'init': function () {
+			this.start = {
+				x: 0,
+				y: 0
+			};
+			this.end = {
+				x: 0,
+				y: 0
+			};
+			this.target = null;
 
-				return this;
-			}
-		}.init()
-	};
+			return this;
+		}
+	}.init();
 
 
 //
@@ -158,7 +159,7 @@ function video (fig) {
 function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
-	//console.warn(e.currentTarget);
+	if (settings.debug) { console.info('Open target:', e.currentTarget); }
 	var element = e.currentTarget;
 	for (var i = 0; i < fig.length; i++) {
 		if (element == fig[i].element) element = fig[i];
@@ -172,8 +173,6 @@ function open (e) {
 		section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
 		controler = section.querySelector('.galerija-controler');
-	//var arrows = controler.querySelector('.galerija-arrows');
-	//var header = controler.querySelector('.galerija-header');
 
 	var transform = `scale(${element.scale.min}) translate(${element.translate.x}px, ${(element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min)}px)`;
 	if (settings.debug) {
@@ -252,11 +251,11 @@ function open (e) {
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	flags.touch.disable = 1;
+	pointer.disable = 1;
 	// determine direction
 	var direction = 0;
 	//console.log(e, this);
@@ -272,7 +271,7 @@ function next (e) {
 	}
 	else {
 		console.warn('Direction: Something went wrong here');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -292,7 +291,7 @@ function next (e) {
 	// check if its possible to get further running
 	if (figs.length < 2 || visibleFigs.length < 2) {
 		if (settings.debug) console.info('No. of figs: Only one fig');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -390,7 +389,7 @@ function next (e) {
 		fig[curr].element.classList.remove('zoom');
 		fig[next].element.classList.add('zoom');
 
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
@@ -418,11 +417,11 @@ function next (e) {
 function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	flags.touch.disable = 1;
+	pointer.disable = 1;
 
 	var element = document.querySelector('.zoom'),
 		img = element.querySelector('img'),
@@ -456,7 +455,7 @@ function close () {
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
 		dimmer.removeAttribute('style');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 	}, settings.transition);
 
 	document.querySelector('html').classList.remove('lock');
@@ -663,11 +662,11 @@ function resize () {
 function keyevent(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.keyevent:');
 	// disable multiple trigers
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//flags.touch.disable = 1;
+	//pointer.disable = 1;
 
 	// pass and test event object
 	e = e || window.event;
@@ -716,39 +715,36 @@ function keyevent(e) {
  * @param {Event} e	Touch event object
  */
 function touchStart (e) {
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//flags.touch.disable = 1;
+	//pointer.disable = 1;
+	e.currentTarget.classList.add('active');
+	e.currentTarget.offsetHeight;
 
-	var t = e.touches[0];
-	flags.touch.start.x = t.screenX;
-	flags.touch.start.y = t.screenY;
+	pointer.start.x = e.clientX;
+	pointer.start.y = e.clientY;
 
-	//flags.touch.disable = 0;
+	fig.forEach(figure => {
+		if (figure.element.classList.contains('zoom')) {
+			console.log(figure);
+			pointer.target = figure;
+		}
+	});
 }
 
-/**
- * Follow touch event path
- * @private
- * @param {Event} e	Touch event object
- * @returns {Boolean} False to prevent default action (scroll)
- */
-function touchMove (e) {
-	if (flags.touch.disable) {
-		if (settings.debug) console.groupEnd();
+function touchMove(e) {
+	if (pointer.start.x == 0 && pointer.start.y == 0) {
 		return;
 	}
-	//flags.touch.disable = 1;
 
-	e.preventDefault();
-	var t = e.touches[0];
-	flags.touch.end.x = t.screenX;
-	flags.touch.end.y = t.screenY;
+	let move = {
+		x: pointer.start.x - e.clientX,
+		y: pointer.start.y - e.clientY
+	};
 
-	//flags.touch.disable = 0;
-	return false;
+	pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x - move.x / pointer.target.scale.min}px, ${(pointer.target.translate.y - (move.y / pointer.target.scale.min) + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
 }
 
 /**
@@ -757,16 +753,24 @@ function touchMove (e) {
  * @param {Event} e Touch event object
  */
 function touchEnd (e) {
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//flags.touch.disable = 1;
+	e.currentTarget.classList.remove('active');
+	//pointer.disable = 1;
+	console.log('Pointer end:', e);
+	e.preventDefault();
 
-	var startX = flags.touch.start.x,
-		endX = flags.touch.end.x,
-		startY = flags.touch.start.y,
-		endY = flags.touch.end.y,
+	pointer.end.x = e.clientX;
+	pointer.end.y = e.clientY;
+
+	//pointer.disable = 0;
+
+	var startX = pointer.start.x,
+		endX = pointer.end.x,
+		startY = pointer.start.y,
+		endY = pointer.end.y,
 		tMinX = settings.touch.minX,
 		tMaxX = settings.touch.maxX,
 		tMinY = settings.touch.minY,
@@ -789,11 +793,15 @@ function touchEnd (e) {
 	}
 	else if (direction == 'down' /*|| direction == 'up'*/) {
 		close();
+	} else {
+		console.log(pointer.target.element);
+		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
 	}
 
 	direction = '';
-	flags.touch.init();
-	//flags.touch.disable = 0;
+	pointer.init();
+	//pointer.disable = 0;
+	return false;
 }
 
 /**
@@ -912,7 +920,7 @@ function init (userSettings) {
 	if (document.readyState !== 'complete') {
 		if (settings.debug) {
 			console.info('Init delayed');
-			console.groupEnd();
+			//console.groupEnd();
 		}
 
 		window.addEventListener('load', function () {
@@ -979,9 +987,17 @@ function init (userSettings) {
 
 	// add touch event listner
 	if (settings.touch.enable) {
-		document.querySelector('.galerija-arrows').addEventListener('touchstart', touchStart, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchmove', touchMove, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchend', touchEnd, false);
+		if ('pointerEvents' in document.documentElement.style) {
+			document.querySelector('.galerija-arrows').addEventListener('pointerdown', touchStart, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointermove', touchMove, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerup pointerout', touchEnd, false);
+			if (settings.debug) console.log('Pointer event support.');
+		}
+		else {
+			document.querySelector('.galerija-arrows').addEventListener('touchstart', touchStart, false);
+			document.querySelector('.galerija-arrows').addEventListener('touchmove', touchMove, false);
+			document.querySelector('.galerija-arrows').addEventListener('touchend', touchEnd, false);
+		}
 	}
 
 	// link blocker on figcaption>a clicks (SEO)
@@ -1012,7 +1028,7 @@ function init (userSettings) {
 				if (settings.id.search('#') >= 0)
 					window.location.hash = settings.id;
 
-				open({ 'target': fig[j].element });
+				open({ 'currentTarget': fig[j].element });
 				break;
 			}
 		}

@@ -179,6 +179,11 @@
 			width: 100%;
 			z-index: 50;
 			@include flexie(row nowrap, space-between, center);
+			cursor: grab;
+
+			&:active {
+				cursor: grabbing;
+			}
 
 			div {
 				//$navigation-size: 2.5em;
