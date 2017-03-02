@@ -65,72 +65,78 @@ var settings = {
 			console.groupEnd();
 		}
 	}
-},
-	viewport = {
-		'init': function () {
-			// set document element
-			var doc = document.documentElement;
+};
 
-			// calculate properties
-			this.width = Math.max(doc.clientWidth, window.innerWidth || 0);
-			this.height = Math.max(doc.clientHeight, window.innerHeight || 0);
-			this.scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+var viewport = {
+	'init': function () {
+		// set document element
+		var doc = document.documentElement;
 
-			return this;
-		},
-		'getScroll': function () {
-			// set document element
-			var doc = document.documentElement;
-			// calc actual scroll (cross-browser)
-			return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
-		}
-	}.init(),
-	fig = [],
-	imgsBuffer = {
-		'preview': {},
-		'full': {},
-		'add': function (src) {
-			// determine for which array it is
-			if (src.search('/preview/') > 0) {
-				var size = 'preview';
-			}
-			if (src.search('/full/') > 0) {
-				var size = 'full';
-			}
+		// calculate properties
+		this.width = Math.max(doc.clientWidth, window.innerWidth || 0);
+		this.height = Math.max(doc.clientHeight, window.innerHeight || 0);
+		this.scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
 
-			// get only name of image
-			var name = src.slice(src.lastIndexOf('/') + 1, src.length);
-			//check if it dosent exists already
-			if (!this[size].hasOwnProperty(name)) {
-				// create image object and add it to array
-				var img = new Image();
-				img.src = src;
-				this[size][name] = img;
-			}
-
-			return this;
-		}
+		return this;
 	},
-	flags = {
-		'imgNextTransitionProgress': 0,
-		'imgGa': 0,
-	},
-	pointer = {
-		'disable': 0,
-		'init': function () {
-			this.start = {
-				x: 0,
-				y: 0
-			};
-			this.end = {
-				x: 0,
-				y: 0
-			};
-			this.target = null;
+	'getScroll': function () {
+		// set document element
+		var doc = document.documentElement;
+		// calc actual scroll (cross-browser)
+		return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
+	}
+}.init();
 
-			return this;
+var fig = [];
+
+var imgsBuffer = {
+	'preview': {},
+	'full': {},
+	'add': function (src) {
+		// determine for which array it is
+		if (src.search('/preview/') > 0) {
+			var size = 'preview';
 		}
-	}.init();
+		if (src.search('/full/') > 0) {
+			var size = 'full';
+		}
+
+		// get only name of image
+		var name = src.slice(src.lastIndexOf('/') + 1, src.length);
+		//check if it dosent exists already
+		if (!this[size].hasOwnProperty(name)) {
+			// create image object and add it to array
+			var img = new Image();
+			img.src = src;
+			this[size][name] = img;
+		}
+
+		return this;
+	}
+};
+
+var flags = {
+	'imgNextTransitionProgress': 0,
+	'imgGa': 0,
+};
+
+var pointer = {
+	'disable': 0,
+	'init': function () {
+		this.start = {
+			x: 0,
+			y: 0
+		};
+		this.end = {
+			x: 0,
+			y: 0
+		};
+		this.axis = null;
+		this.target = null;
+
+		return this;
+	}
+}.init();
 
 
 //
@@ -753,7 +759,8 @@ function touchMove(e) {
  * @param {Event} e Touch event object
  */
 function touchEnd (e) {
-	if (pointer.disable) {
+	if (pointer.disable
+		|| (pointer.start.x == 0 && pointer.start.y == 0)) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -761,6 +768,11 @@ function touchEnd (e) {
 	//pointer.disable = 1;
 	console.log('Pointer end:', e);
 	e.preventDefault();
+	if ( document.selection ) {
+		document.selection.empty();
+	} else if ( window.getSelection ) {
+		window.getSelection().removeAllRanges();
+	}
 
 	pointer.end.x = e.clientX;
 	pointer.end.y = e.clientY;
@@ -777,8 +789,11 @@ function touchEnd (e) {
 		tMaxY = settings.touch.maxY,
 		direction = '';
 
+	if (e.type == 'pointerleave') {
+		;
+	}
 	//horizontal detection
-	if ((((endX - tMinX > startX) || (endX + tMinX < startX)) && ((endY < startY + tMaxY) && (startY > endY - tMaxY) && (endX > 0)))) {
+	else if ((((endX - tMinX > startX) || (endX + tMinX < startX)) && ((endY < startY + tMaxY) && (startY > endY - tMaxY) && (endX > 0)))) {
 		if (endX > startX) direction = 'left';
 		else direction = 'right';
 	}
@@ -794,7 +809,7 @@ function touchEnd (e) {
 	else if (direction == 'down' /*|| direction == 'up'*/) {
 		close();
 	} else {
-		console.log(pointer.target.element);
+		//console.log(pointer.target.element);
 		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
 	}
 
@@ -990,7 +1005,8 @@ function init (userSettings) {
 		if ('pointerEvents' in document.documentElement.style) {
 			document.querySelector('.galerija-arrows').addEventListener('pointerdown', touchStart, false);
 			document.querySelector('.galerija-arrows').addEventListener('pointermove', touchMove, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointerup pointerout', touchEnd, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerup', touchEnd, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerleave', touchEnd, false);
 			if (settings.debug) console.log('Pointer event support.');
 		}
 		else {
