@@ -13,37 +13,58 @@
 // Variables
 //
 
+/**
+ * Settings
+ * @public
+ * Holds global settings for photosMd
+ */
 var settings = {
 	'id': '#galerija',	// id for section
 	'transition': 500,	// animation and transition duration
 	'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
 	'debug': 0,
-	'touch': {
-		enable: true,   // enable touch gestures
-		minX: 30,
-		maxX: 30,
-		minY: 50,
-		maxY: 60,
-	},
+	'pointer': {
+		enable: true,
+		tresholdAxis: {
+			horizontal: 100,
+			vertical: 30
+		},
+		treshold: {
+			horizontal: 128,
+			vertical: 72
+		},
+		check: function () {
+			if (this.tresholdAxis.horizontal > this.treshold.horizontal) {
+				this.treshold.horizontal = this.tresholdAxis.horizontal;
+			}
+			if (this.tresholdAxis.vertical > this.treshold.vertical) {
+				this.treshold.vertical = this.tresholdAxis.vertical;
+			}
+
+			return this;
+		}
+	}.check(),
 	'create': [],
 	'preview': 1,
 	// MERGE settings
 	'merge': function (userSettings) {
+		// TO DO: recursivly merge; run check function if present
 		// first merge debug, so logs can be done properly
 		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
 			this.debug = 1;
 		}
 		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
+		if (this.debug) console.warn('photosMd.settings.merge: TO DO: recursivly merge; run check function if present');
 
 		// spin through array and merge one by one
-		for (var key in userSettings) {
+		for (let key in userSettings) {
 
 			// test if both has the key property
 			if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
 
 				// test for id
 				if (key == 'id' && userSettings.id.search('#') < 0) {
-					console.warn('photos-md: (No # in ID)');
+					console.warn('photos-md: (No # in ID. ID has to be unique. Only one instance per object.)');
 					//break;
 				}
 				// merge
@@ -52,7 +73,6 @@ var settings = {
 				if (this.debug) console.info(key + ' merged');
 			}
 			else {
-
 				// invalid key
 				try {
 					console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
@@ -67,6 +87,11 @@ var settings = {
 	}
 };
 
+/**
+ * Viewport
+ * @private
+ * Holds the information about viewport (screen)
+ */
 var viewport = {
 	'init': function () {
 		// set document element
@@ -87,8 +112,20 @@ var viewport = {
 	}
 }.init();
 
+
+/**
+ * Figure
+ * @private
+ * Object of registered figures
+ * TO-DO: registration function
+ */
 var fig = [];
 
+/**
+ * Images buffer
+ * @private
+ * Holds images in buffer once fetched
+ */
 var imgsBuffer = {
 	'preview': {},
 	'full': {},
@@ -118,18 +155,24 @@ var imgsBuffer = {
 var flags = {
 	'imgNextTransitionProgress': 0,
 	'imgGa': 0,
+	'history': false
 };
 
+/**
+ * Pointer
+ * @private
+ * Holds pointer state
+ */
 var pointer = {
 	'disable': 0,
 	'init': function () {
 		this.start = {
-			x: 0,
-			y: 0
+			x: null,
+			y: null
 		};
 		this.end = {
-			x: 0,
-			y: 0
+			x: null,
+			y: null
 		};
 		this.axis = null;
 		this.target = null;
@@ -229,12 +272,14 @@ function open (e) {
 	document.querySelector('html').classList.add('lock');
 	document.querySelector('body').classList.add('lock');
 
-	// url history
-	var url = element.element.querySelector('figcaption > a').getAttribute('href'),
-		state = { url: url },
-		title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
-	window.history.replaceState(state, title, url);
-	//console.log(state, title, url);
+	// url history (open)
+	if (flags.history) {
+		var title = element.element.querySelector('figcaption > a').innerHTML,
+			queryValue = element.element.querySelector('figcaption > a').getAttribute('href').substr(3),
+			url = updateQueryString('p', queryValue);
+
+		window.history.replaceState(null, title, url);
+	}
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -246,6 +291,47 @@ function open (e) {
 		});
 
 	if (settings.debug) console.groupEnd();
+}
+
+/**
+ * Manipulate query string
+ * Add, update or remove query string by name. Empty value will remove query.
+ * @author ellemayo
+ * @credits http://stackoverflow.com/a/11654596/3529055
+ *
+ * @param {String} key Search string name to manipulate
+ * @param {String} value Value to update. Empty will remove query string name
+ * @param {String} url Url string to perform operation on
+ * @returns {String} New url
+ */
+function updateQueryString(key, value, url) {
+    if (!url) url = window.location.href;
+    let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
+        hash;
+
+    if (re.test(url)) {
+        if (typeof value !== 'undefined' && value !== null)
+            return url.replace(re, '$1' + key + "=" + value + '$2$3');
+        else {
+            hash = url.split('#');
+            url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        }
+    }
+    else {
+        if (typeof value !== 'undefined' && value !== null) {
+            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+            hash = url.split('#');
+            url = hash[0] + separator + key + '=' + value;
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        }
+        else
+            return url;
+    }
 }
 
 /**
@@ -400,11 +486,14 @@ function next (e) {
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
 
-	// url history change
-	var url = fig[next].element.querySelector('figcaption > a').getAttribute('href'),
-		state = { url: url },
-		title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
-	window.history.pushState(state, title, url);
+	// url history change (next)
+	if (flags.history) {
+		let title = fig[next].element.querySelector('figcaption > a').innerHTML,
+			queryValue = fig[next].element.querySelector('figcaption > a').getAttribute('href').substr(3),
+			url = updateQueryString('p', queryValue);
+
+		window.history.replaceState(null, title, url);
+    }
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -467,10 +556,13 @@ function close () {
 	document.querySelector('html').classList.remove('lock');
 	document.querySelector('body').classList.remove('lock');
 
-	// url history
-	var href = element.querySelector('figcaption > a').getAttribute('href'),
-		url = (decodeURIComponent(window.location.pathname + window.location.search + window.location.hash)).replace(href, '');
-	window.history.replaceState('', '', url);
+	// url history (close)
+	if (flags.history) {
+		var title = document.querySelector('title').innerHTML,
+			url = updateQueryString('p');
+
+		window.history.replaceState(null, title, url);
+	}
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -718,14 +810,15 @@ function keyevent(e) {
 /**
  * init start position on touch
  * @private
- * @param {Event} e	Touch event object
+ * @param {PointerEvent} e	Pointer event object
  */
-function touchStart (e) {
+function pointerStart(e) {
+	if (settings.debug) console.groupCollapsed('photosMd.pointerStart:');
 	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//pointer.disable = 1;
+	pointer.disable = 1;
 	e.currentTarget.classList.add('active');
 	e.currentTarget.offsetHeight;
 
@@ -734,23 +827,73 @@ function touchStart (e) {
 
 	fig.forEach(figure => {
 		if (figure.element.classList.contains('zoom')) {
-			console.log(figure);
+			//console.log(figure);
 			pointer.target = figure;
 		}
 	});
+
+	pointer.disable = 0;
+	if (settings.debug) console.groupEnd();
 }
 
-function touchMove(e) {
-	if (pointer.start.x == 0 && pointer.start.y == 0) {
+/**
+ * Observe pointer movement
+ * @param {PointerEvent} e Pointer event object
+ */
+function pointerMove(e) {
+	if (pointer.start.x === null && pointer.start.y === null) {
+		return;
+	}
+	if (settings.debug) console.groupCollapsed('photosMd.pointerMove:');
+
+	// calc movement (move object)
+	let move = {
+		x: pointer.start.x - e.clientX,
+		y: pointer.start.y - e.clientY,
+		calcPath: function () {
+			this.xPath = this.x > 0 ? this.x : -this.x;
+			this.yPath = this.y > 0 ? this.y : -this.y;
+
+			return this;
+		}
+	}.calcPath();
+
+	// test if move is 0 (dont perform anything on pointer down) --is this really needed?
+	if (move.x == 0 && move.y == 0) {
+		if (settings.debug) {
+			console.log('Zero move.');
+			console.groupEnd();
+		}
 		return;
 	}
 
-	let move = {
-		x: pointer.start.x - e.clientX,
-		y: pointer.start.y - e.clientY
-	};
+	// set axis, only when empty (dont override and do `visually unknown` action)
+	if (pointer.axis === null) {
+		if (move.xPath > settings.pointer.tresholdAxis.horizontal) {
+			pointer.axis = 'horizontal';
+		} else if (move.yPath > settings.pointer.tresholdAxis.vertical) {
+			pointer.axis = 'vertical';
+		}
+	}
 
-	pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x - move.x / pointer.target.scale.min}px, ${(pointer.target.translate.y - (move.y / pointer.target.scale.min) + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
+	let translateX = pointer.target.translate.x,
+		translateY = pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min;
+	// move image with pointer
+	if (pointer.axis == 'horizontal') {
+		translateX = translateX - move.x / pointer.target.scale.min;
+	} else if (pointer.axis == 'vertical') {
+		translateY = translateY - move.y / pointer.target.scale.min;
+	} else {
+		translateX = translateX - move.x / pointer.target.scale.min;
+		translateY = translateY - move.y / pointer.target.scale.min;
+	}
+
+	// update image position (translate)
+	pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${translateX}px, ${translateY}px)`;
+
+	if (settings.debug) {
+		console.groupEnd();
+	}
 }
 
 /**
@@ -758,65 +901,61 @@ function touchMove(e) {
  * @private
  * @param {Event} e Touch event object
  */
-function touchEnd (e) {
-	if (pointer.disable
-		|| (pointer.start.x == 0 && pointer.start.y == 0)) {
+function pointerEnd(e) {
+	if (settings.debug) console.groupCollapsed('photoMd.pointerEnd:');
+	if (pointer.disable || (pointer.axis === null && (e.type == 'pointerleave' || e.type == 'pointerup'))) {
+		//pointer.init();
 		if (settings.debug) console.groupEnd();
 		return;
 	}
+
 	e.currentTarget.classList.remove('active');
-	//pointer.disable = 1;
 	console.log('Pointer end:', e);
+
+	// prevent selection on dragging
 	e.preventDefault();
-	if ( document.selection ) {
+	if (document.selection) {
 		document.selection.empty();
-	} else if ( window.getSelection ) {
+	} else if (window.getSelection) {
 		window.getSelection().removeAllRanges();
 	}
 
 	pointer.end.x = e.clientX;
 	pointer.end.y = e.clientY;
 
-	//pointer.disable = 0;
-
-	var startX = pointer.start.x,
-		endX = pointer.end.x,
-		startY = pointer.start.y,
-		endY = pointer.end.y,
-		tMinX = settings.touch.minX,
-		tMaxX = settings.touch.maxX,
-		tMinY = settings.touch.minY,
-		tMaxY = settings.touch.maxY,
+	let horizontalPath = pointer.end.x - pointer.start.x,
+		verticalPath = pointer.end.y - pointer.start.y,
+		horizontalPathLength = horizontalPath > 0 ? horizontalPath : -horizontalPath,
+		verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
 		direction = '';
 
-	if (e.type == 'pointerleave') {
-		;
+	if (e.type == 'pointerleave' || pointer.axis === null) {
+		direction = 'none';
+	} else if (pointer.axis == 'horizontal' && horizontalPathLength >= settings.pointer.treshold.horizontal) {
+		direction = horizontalPath > 0 ? 'left' : 'right';
+	} else if (pointer.axis == 'vertical' && verticalPathLength >= settings.pointer.treshold.vertical) {
+		direction = verticalPath > 0 ? 'down' : 'up';
 	}
-	//horizontal detection
-	else if ((((endX - tMinX > startX) || (endX + tMinX < startX)) && ((endY < startY + tMaxY) && (startY > endY - tMaxY) && (endX > 0)))) {
-		if (endX > startX) direction = 'left';
-		else direction = 'right';
-	}
-	//vertical detection
-	else if ((((endY - tMinY > startY) || (endY + tMinY < startY)) && ((endX < startX + tMaxX) && (startX > endX - tMaxX) && (endY > 0)))) {
-		if (endY > startY) direction = 'down';
-		else direction = 'up';
-	}
+	console.log(`axis: ${pointer.axis},
+		horizontalPath: ${horizontalPath},
+		verticalPath: ${verticalPath},
+		horizontalPathLength: ${horizontalPathLength},
+		verticalPathLength: ${verticalPathLength},
+		direction: ${direction}`
+	);
 
 	if (direction == 'left' || direction == 'right') {
 		next(direction);
-	}
-	else if (direction == 'down' /*|| direction == 'up'*/) {
+	} else if (direction == 'down' || direction == 'up') {
 		close();
 	} else {
 		//console.log(pointer.target.element);
 		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
 	}
 
-	direction = '';
 	pointer.init();
 	//pointer.disable = 0;
-	return false;
+	if (settings.debug) console.groupEnd();
 }
 
 /**
@@ -945,6 +1084,11 @@ function init (userSettings) {
 		return;
 	}
 
+	// test futures (history)
+	if (typeof history !== 'undefined') {
+		flags.history = true;
+    }
+
 	// declare variables
 	var section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
@@ -1001,18 +1145,18 @@ function init (userSettings) {
 	window.addEventListener('orientationchange', resize, false);
 
 	// add touch event listner
-	if (settings.touch.enable) {
+	if (settings.pointer.enable) {
 		if ('pointerEvents' in document.documentElement.style) {
-			document.querySelector('.galerija-arrows').addEventListener('pointerdown', touchStart, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointermove', touchMove, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointerup', touchEnd, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointerleave', touchEnd, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
+			document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
 			if (settings.debug) console.log('Pointer event support.');
 		}
 		else {
-			document.querySelector('.galerija-arrows').addEventListener('touchstart', touchStart, false);
-			document.querySelector('.galerija-arrows').addEventListener('touchmove', touchMove, false);
-			document.querySelector('.galerija-arrows').addEventListener('touchend', touchEnd, false);
+			document.querySelector('.galerija-arrows').addEventListener('touchstart', pointerStart, false);
+			document.querySelector('.galerija-arrows').addEventListener('touchmove', pointerMove, false);
+			document.querySelector('.galerija-arrows').addEventListener('touchend', pointerEnd, false);
 		}
 	}
 
