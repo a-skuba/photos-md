@@ -265,6 +265,10 @@
 			transform: translateZ(0) scale(1.0, 1.0);
 		}
 
+		&.zoom figcaption {
+			opacity: 0;
+		}
+
 		&.hide, &.show {
 			opacity: 0;
 		}

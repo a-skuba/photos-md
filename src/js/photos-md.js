@@ -814,7 +814,7 @@ function keyevent(e) {
  */
 function pointerStart(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.pointerStart:');
-	if (pointer.disable) {
+	if (pointer.disable || !(e.pressure > 0)) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -832,6 +832,13 @@ function pointerStart(e) {
 		}
 	});
 
+	e.preventDefault();
+	if (document.selection) {
+		document.selection.empty();
+	} else if (window.getSelection) {
+		window.getSelection().removeAllRanges();
+	}
+
 	pointer.disable = 0;
 	if (settings.debug) console.groupEnd();
 }
@@ -841,8 +848,16 @@ function pointerStart(e) {
  * @param {PointerEvent} e Pointer event object
  */
 function pointerMove(e) {
+	// exit on mouse default movement & zero pressure (add log on zero pressure)
 	if (pointer.start.x === null && pointer.start.y === null) {
 		return;
+	} else if (!(e.pressure > 0)) {
+		if (settings.debug) {
+			console.groupCollapsed('photosMd.pointerMove:');
+			console.log('Zero pressure');
+			console.groupEnd();
+		}
+		return
 	}
 	if (settings.debug) console.groupCollapsed('photosMd.pointerMove:');
 
@@ -883,6 +898,13 @@ function pointerMove(e) {
 		translateX = translateX - move.x / pointer.target.scale.min;
 	} else if (pointer.axis == 'vertical') {
 		translateY = translateY - move.y / pointer.target.scale.min;
+		// fade blackout
+		let verticalPath = e.clientY - pointer.start.y,
+			verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
+			opacity = settings.pointer.treshold.vertical / verticalPathLength - 1,
+			view = document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open');
+
+		view.forEach(el => el.style.opacity = opacity);
 	} else {
 		translateX = translateX - move.x / pointer.target.scale.min;
 		translateY = translateY - move.y / pointer.target.scale.min;
@@ -903,14 +925,17 @@ function pointerMove(e) {
  */
 function pointerEnd(e) {
 	if (settings.debug) console.groupCollapsed('photoMd.pointerEnd:');
-	if (pointer.disable || (pointer.axis === null && (e.type == 'pointerleave' || e.type == 'pointerup'))) {
-		//pointer.init();
-		if (settings.debug) console.groupEnd();
+	if (e.defaultPrevented
+		&& (pointer.disable || (pointer.axis === null && (e.type == 'pointerleave' || e.type == 'pointerup')))) {
+		if (settings.debug) {
+			console.log('Pointer event: ', e);
+			console.groupEnd();
+		}
 		return;
 	}
 
 	e.currentTarget.classList.remove('active');
-	console.log('Pointer end:', e);
+	if (settings.debug) console.log('Pointer end:', e);
 
 	// prevent selection on dragging
 	e.preventDefault();
@@ -936,7 +961,7 @@ function pointerEnd(e) {
 	} else if (pointer.axis == 'vertical' && verticalPathLength >= settings.pointer.treshold.vertical) {
 		direction = verticalPath > 0 ? 'down' : 'up';
 	}
-	console.log(`axis: ${pointer.axis},
+	if (settings.debug) console.log(`axis: ${pointer.axis},
 		horizontalPath: ${horizontalPath},
 		verticalPath: ${verticalPath},
 		horizontalPathLength: ${horizontalPathLength},
@@ -951,6 +976,9 @@ function pointerEnd(e) {
 	} else {
 		//console.log(pointer.target.element);
 		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
+		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open').forEach(
+			el => el.style.opacity = 1
+		);
 	}
 
 	pointer.init();
