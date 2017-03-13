@@ -141,6 +141,7 @@
 
 	.galerija-controler.open {
 		z-index: 40;
+		touch-action: none;
 		@include flexie(column nowrap, flex-start, center);
 
 		.galerija-header {

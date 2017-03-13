@@ -980,7 +980,7 @@ function position (el) {
 		};
 
 	while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-		_x += el.offsetLeft - el.scrollLeft;
+		_x += el.offsetLeft - ((window.pageXOffset || el.scrollLeft) - (el.clientLeft || 0));
 		_y += el.offsetTop - ((window.pageYOffset || el.scrollTop) - (el.clientTop || 0));
 
 		el = el.offsetParent;
