@@ -13,123 +13,173 @@
 // Variables
 //
 
+/**
+ * Settings
+ * @public
+ * Holds global settings for photosMd
+ */
 var settings = {
-		'id': '#galerija',	// id for section
-		'transition': 500,	// animation and transition duration
-		'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
-		'debug': 0,
-		'touch': {
-			enable: true,   // enable touch gestures
-			minX: 30,
-			maxX: 30,
-			minY: 50,
-			maxY: 60,
+	'id': '#galerija',	// id for section
+	'transition': 500,	// animation and transition duration
+	'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
+	'debug': 0,
+	'pointer': {
+		enable: true,
+		tresholdAxis: {
+			horizontal: 100,
+			vertical: 30
 		},
-		'create': [],
-		'preview': 1,
-		// MERGE settings
-		'merge': function (userSettings) {
-			// first merge debug, so logs can be done properly
-			if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
-				this.debug = 1;
-			}
-			if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
-
-			// spin through array and merge one by one
-			for (var key in userSettings) {
-
-				// test if both has the key property
-				if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
-
-					// test for id
-					if (key == 'id' && userSettings.id.search('#') < 0) {
-						console.warn('photos-md: (No # in ID)');
-						//break;
-					}
-					// merge
-					this[key] = userSettings[key];
-
-					if (this.debug) console.info(key + ' merged');
-				}
-				else {
-
-					// invalid key
-					try {
-						console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
-					} catch (e) { }
-				}
-			}
-
-			if (this.debug) {
-				console.info(this);
-				console.groupEnd();
-			}
-		}
-	},
-	viewport = {
-		'init': function () {
-			// set document element
-			var doc = document.documentElement;
-
-			// calculate properties
-			this.width = Math.max(doc.clientWidth, window.innerWidth || 0);
-			this.height = Math.max(doc.clientHeight, window.innerHeight || 0);
-			this.scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
-
-			return this;
+		treshold: {
+			horizontal: 128,
+			vertical: 72
 		},
-		'getScroll': function () {
-			// set document element
-			var doc = document.documentElement;
-			// calc actual scroll (cross-browser)
-			return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
-		}
-	}.init(),
-	fig = [],
-	imgsBuffer = {
-		'preview': {},
-		'full': {},
-		'add': function (src) {
-			// determine for which array it is
-			if (src.search('/preview/') > 0) {
-				var size = 'preview';
+		check: function () {
+			if (this.tresholdAxis.horizontal > this.treshold.horizontal) {
+				this.treshold.horizontal = this.tresholdAxis.horizontal;
 			}
-			if (src.search('/full/') > 0) {
-				var size = 'full';
-			}
-
-			// get only name of image
-			var name = src.slice(src.lastIndexOf('/') + 1, src.length);
-			//check if it dosent exists already
-			if (!this[size].hasOwnProperty(name)) {
-				// create image object and add it to array
-				var img = new Image();
-				img.src = src;
-				this[size][name] = img;
+			if (this.tresholdAxis.vertical > this.treshold.vertical) {
+				this.treshold.vertical = this.tresholdAxis.vertical;
 			}
 
 			return this;
 		}
-	},
-	flags = {
-		'imgNextTransitionProgress': 0,
-		'imgGa': 0,
-		'touch': {
-			'disable': 0,
-			'init': function () {
-				this.start = {
-					x: 0,
-					y: 0
-				};
-				this.end = {
-					x: 0,
-					y: 0
-				};
+	}.check(),
+	'create': [],
+	'preview': 1,
+	// MERGE settings
+	'merge': function (userSettings) {
+		// TO DO: recursivly merge; run check function if present
+		// first merge debug, so logs can be done properly
+		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
+			this.debug = 1;
+		}
+		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
+		if (this.debug) console.warn('photosMd.settings.merge: TO DO: recursivly merge; run check function if present');
 
-				return this;
+		// spin through array and merge one by one
+		for (let key in userSettings) {
+
+			// test if both has the key property
+			if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
+
+				// test for id
+				if (key == 'id' && userSettings.id.search('#') < 0) {
+					console.warn('photos-md: (No # in ID. ID has to be unique. Only one instance per object.)');
+					//break;
+				}
+				// merge
+				this[key] = userSettings[key];
+
+				if (this.debug) console.info(key + ' merged');
 			}
-		}.init()
-	};
+			else {
+				// invalid key
+				try {
+					console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
+				} catch (e) { }
+			}
+		}
+
+		if (this.debug) {
+			console.info(this);
+			console.groupEnd();
+		}
+	}
+};
+
+/**
+ * Viewport
+ * @private
+ * Holds the information about viewport (screen)
+ */
+var viewport = {
+	'init': function () {
+		// set document element
+		var doc = document.documentElement;
+
+		// calculate properties
+		this.width = Math.max(doc.clientWidth, window.innerWidth || 0);
+		this.height = Math.max(doc.clientHeight, window.innerHeight || 0);
+		this.scroll = (window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0);
+
+		return this;
+	},
+	'getScroll': function () {
+		// set document element
+		var doc = document.documentElement;
+		// calc actual scroll (cross-browser)
+		return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
+	}
+}.init();
+
+
+/**
+ * Figure
+ * @private
+ * Object of registered figures
+ * TO-DO: registration function
+ */
+var fig = [];
+
+/**
+ * Images buffer
+ * @private
+ * Holds images in buffer once fetched
+ */
+var imgsBuffer = {
+	'preview': {},
+	'full': {},
+	'add': function (src) {
+		// determine for which array it is
+		if (src.search('/preview/') > 0) {
+			var size = 'preview';
+		}
+		if (src.search('/full/') > 0) {
+			var size = 'full';
+		}
+
+		// get only name of image
+		var name = src.slice(src.lastIndexOf('/') + 1, src.length);
+		//check if it dosent exists already
+		if (!this[size].hasOwnProperty(name)) {
+			// create image object and add it to array
+			var img = new Image();
+			img.src = src;
+			this[size][name] = img;
+		}
+
+		return this;
+	}
+};
+
+var flags = {
+	'imgNextTransitionProgress': 0,
+	'imgGa': 0,
+	'history': false
+};
+
+/**
+ * Pointer
+ * @private
+ * Holds pointer state
+ */
+var pointer = {
+	'disable': 0,
+	'init': function () {
+		this.start = {
+			x: null,
+			y: null
+		};
+		this.end = {
+			x: null,
+			y: null
+		};
+		this.axis = null;
+		this.target = null;
+
+		return this;
+	}
+}.init();
 
 
 //
@@ -158,7 +208,7 @@ function video (fig) {
 function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
-	//console.warn(e.currentTarget);
+	if (settings.debug) { console.info('Open target:', e.currentTarget); }
 	var element = e.currentTarget;
 	for (var i = 0; i < fig.length; i++) {
 		if (element == fig[i].element) element = fig[i];
@@ -172,8 +222,6 @@ function open (e) {
 		section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
 		controler = section.querySelector('.galerija-controler');
-	//var arrows = controler.querySelector('.galerija-arrows');
-	//var header = controler.querySelector('.galerija-header');
 
 	var transform = `scale(${element.scale.min}) translate(${element.translate.x}px, ${(element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min)}px)`;
 	if (settings.debug) {
@@ -224,12 +272,14 @@ function open (e) {
 	document.querySelector('html').classList.add('lock');
 	document.querySelector('body').classList.add('lock');
 
-	// url history
-	var url = element.element.querySelector('figcaption > a').getAttribute('href'),
-		state = { url: url },
-		title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
-	window.history.replaceState(state, title, url);
-	//console.log(state, title, url);
+	// url history (open)
+	if (flags.history) {
+		var title = element.element.querySelector('figcaption > a').innerHTML,
+			queryValue = element.element.querySelector('figcaption > a').getAttribute('href').substr(3),
+			url = updateQueryString('p', queryValue);
+
+		window.history.replaceState(null, title, url);
+	}
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -244,6 +294,47 @@ function open (e) {
 }
 
 /**
+ * Manipulate query string
+ * Add, update or remove query string by name. Empty value will remove query.
+ * @author ellemayo
+ * @credits http://stackoverflow.com/a/11654596/3529055
+ *
+ * @param {String} key Search string name to manipulate
+ * @param {String} value Value to update. Empty will remove query string name
+ * @param {String} url Url string to perform operation on
+ * @returns {String} New url
+ */
+function updateQueryString(key, value, url) {
+    if (!url) url = window.location.href;
+    let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
+        hash;
+
+    if (re.test(url)) {
+        if (typeof value !== 'undefined' && value !== null)
+            return url.replace(re, '$1' + key + "=" + value + '$2$3');
+        else {
+            hash = url.split('#');
+            url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        }
+    }
+    else {
+        if (typeof value !== 'undefined' && value !== null) {
+            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+            hash = url.split('#');
+            url = hash[0] + separator + key + '=' + value;
+            if (typeof hash[1] !== 'undefined' && hash[1] !== null)
+                url += '#' + hash[1];
+            return url;
+        }
+        else
+            return url;
+    }
+}
+
+/**
  * Transition to next image
  * @public
  * @param {String|Event} e	String or object with class containing Left or Right
@@ -252,11 +343,11 @@ function open (e) {
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	flags.touch.disable = 1;
+	pointer.disable = 1;
 	// determine direction
 	var direction = 0;
 	//console.log(e, this);
@@ -272,7 +363,7 @@ function next (e) {
 	}
 	else {
 		console.warn('Direction: Something went wrong here');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -292,7 +383,7 @@ function next (e) {
 	// check if its possible to get further running
 	if (figs.length < 2 || visibleFigs.length < 2) {
 		if (settings.debug) console.info('No. of figs: Only one fig');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -390,16 +481,19 @@ function next (e) {
 		fig[curr].element.classList.remove('zoom');
 		fig[next].element.classList.add('zoom');
 
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
 
-	// url history change
-	var url = fig[next].element.querySelector('figcaption > a').getAttribute('href'),
-		state = { url: url },
-		title = url.substr(url.indexOf('=') + 1, url.indexOf('.'));
-	window.history.pushState(state, title, url);
+	// url history change (next)
+	if (flags.history) {
+		let title = fig[next].element.querySelector('figcaption > a').innerHTML,
+			queryValue = fig[next].element.querySelector('figcaption > a').getAttribute('href').substr(3),
+			url = updateQueryString('p', queryValue);
+
+		window.history.replaceState(null, title, url);
+    }
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -418,11 +512,11 @@ function next (e) {
 function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	flags.touch.disable = 1;
+	pointer.disable = 1;
 
 	var element = document.querySelector('.zoom'),
 		img = element.querySelector('img'),
@@ -456,16 +550,19 @@ function close () {
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
 		dimmer.removeAttribute('style');
-		flags.touch.disable = 0;
+		pointer.disable = 0;
 	}, settings.transition);
 
 	document.querySelector('html').classList.remove('lock');
 	document.querySelector('body').classList.remove('lock');
 
-	// url history
-	var href = element.querySelector('figcaption > a').getAttribute('href'),
-		url = (decodeURIComponent(window.location.pathname + window.location.search + window.location.hash)).replace(href, '');
-	window.history.replaceState('', '', url);
+	// url history (close)
+	if (flags.history) {
+		var title = document.querySelector('title').innerHTML,
+			url = updateQueryString('p');
+
+		window.history.replaceState(null, title, url);
+	}
 
 	// GAnalytics
 	if(typeof ga != 'undefined')
@@ -663,11 +760,11 @@ function resize () {
 function keyevent(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.keyevent:');
 	// disable multiple trigers
-	if (flags.touch.disable) {
+	if (pointer.disable) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//flags.touch.disable = 1;
+	//pointer.disable = 1;
 
 	// pass and test event object
 	e = e || window.event;
@@ -713,42 +810,112 @@ function keyevent(e) {
 /**
  * init start position on touch
  * @private
- * @param {Event} e	Touch event object
+ * @param {PointerEvent} e	Pointer event object
  */
-function touchStart (e) {
-	if (flags.touch.disable) {
+function pointerStart(e) {
+	if (settings.debug) console.groupCollapsed('photosMd.pointerStart:');
+	if (pointer.disable || !(e.pressure > 0)) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	//flags.touch.disable = 1;
+	pointer.disable = 1;
+	e.currentTarget.classList.add('active');
+	e.currentTarget.offsetHeight;
 
-	var t = e.touches[0];
-	flags.touch.start.x = t.screenX;
-	flags.touch.start.y = t.screenY;
+	pointer.start.x = e.clientX;
+	pointer.start.y = e.clientY;
 
-	//flags.touch.disable = 0;
+	fig.forEach(figure => {
+		if (figure.element.classList.contains('zoom')) {
+			//console.log(figure);
+			pointer.target = figure;
+		}
+	});
+
+	e.preventDefault();
+	if (document.selection) {
+		document.selection.empty();
+	} else if (window.getSelection) {
+		window.getSelection().removeAllRanges();
+	}
+
+	pointer.disable = 0;
+	if (settings.debug) console.groupEnd();
 }
 
 /**
- * Follow touch event path
- * @private
- * @param {Event} e	Touch event object
- * @returns {Boolean} False to prevent default action (scroll)
+ * Observe pointer movement
+ * @param {PointerEvent} e Pointer event object
  */
-function touchMove (e) {
-	if (flags.touch.disable) {
-		if (settings.debug) console.groupEnd();
+function pointerMove(e) {
+	// exit on mouse default movement & zero pressure (add log on zero pressure)
+	if (pointer.start.x === null && pointer.start.y === null) {
+		return;
+	} else if (!(e.pressure > 0)) {
+		if (settings.debug) {
+			console.groupCollapsed('photosMd.pointerMove:');
+			console.log('Zero pressure');
+			console.groupEnd();
+		}
+		return
+	}
+	if (settings.debug) console.groupCollapsed('photosMd.pointerMove:');
+
+	// calc movement (move object)
+	let move = {
+		x: pointer.start.x - e.clientX,
+		y: pointer.start.y - e.clientY,
+		calcPath: function () {
+			this.xPath = this.x > 0 ? this.x : -this.x;
+			this.yPath = this.y > 0 ? this.y : -this.y;
+
+			return this;
+		}
+	}.calcPath();
+
+	// test if move is 0 (dont perform anything on pointer down) --is this really needed?
+	if (move.x == 0 && move.y == 0) {
+		if (settings.debug) {
+			console.log('Zero move.');
+			console.groupEnd();
+		}
 		return;
 	}
-	//flags.touch.disable = 1;
 
-	e.preventDefault();
-	var t = e.touches[0];
-	flags.touch.end.x = t.screenX;
-	flags.touch.end.y = t.screenY;
+	// set axis, only when empty (dont override and do `visually unknown` action)
+	if (pointer.axis === null) {
+		if (move.xPath > settings.pointer.tresholdAxis.horizontal) {
+			pointer.axis = 'horizontal';
+		} else if (move.yPath > settings.pointer.tresholdAxis.vertical) {
+			pointer.axis = 'vertical';
+		}
+	}
 
-	//flags.touch.disable = 0;
-	return false;
+	let translateX = pointer.target.translate.x,
+		translateY = pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min;
+	// move image with pointer
+	if (pointer.axis == 'horizontal') {
+		translateX = translateX - move.x / pointer.target.scale.min;
+	} else if (pointer.axis == 'vertical') {
+		translateY = translateY - move.y / pointer.target.scale.min;
+		// fade blackout
+		let verticalPath = e.clientY - pointer.start.y,
+			verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
+			opacity = settings.pointer.treshold.vertical / verticalPathLength - 1,
+			view = document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open');
+
+		view.forEach(el => el.style.opacity = opacity);
+	} else {
+		translateX = translateX - move.x / pointer.target.scale.min;
+		translateY = translateY - move.y / pointer.target.scale.min;
+	}
+
+	// update image position (translate)
+	pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${translateX}px, ${translateY}px)`;
+
+	if (settings.debug) {
+		console.groupEnd();
+	}
 }
 
 /**
@@ -756,44 +923,67 @@ function touchMove (e) {
  * @private
  * @param {Event} e Touch event object
  */
-function touchEnd (e) {
-	if (flags.touch.disable) {
-		if (settings.debug) console.groupEnd();
+function pointerEnd(e) {
+	if (settings.debug) console.groupCollapsed('photoMd.pointerEnd:');
+	if (e.defaultPrevented
+		&& (pointer.disable || (pointer.axis === null && (e.type == 'pointerleave' || e.type == 'pointerup')))) {
+		if (settings.debug) {
+			console.log('Pointer event: ', e);
+			console.groupEnd();
+		}
 		return;
 	}
-	//flags.touch.disable = 1;
 
-	var startX = flags.touch.start.x,
-		endX = flags.touch.end.x,
-		startY = flags.touch.start.y,
-		endY = flags.touch.end.y,
-		tMinX = settings.touch.minX,
-		tMaxX = settings.touch.maxX,
-		tMinY = settings.touch.minY,
-		tMaxY = settings.touch.maxY,
+	e.currentTarget.classList.remove('active');
+	if (settings.debug) console.log('Pointer end:', e);
+
+	// prevent selection on dragging
+	e.preventDefault();
+	if (document.selection) {
+		document.selection.empty();
+	} else if (window.getSelection) {
+		window.getSelection().removeAllRanges();
+	}
+
+	pointer.end.x = e.clientX;
+	pointer.end.y = e.clientY;
+
+	let horizontalPath = pointer.end.x - pointer.start.x,
+		verticalPath = pointer.end.y - pointer.start.y,
+		horizontalPathLength = horizontalPath > 0 ? horizontalPath : -horizontalPath,
+		verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
 		direction = '';
 
-	//horizontal detection
-	if ((((endX - tMinX > startX) || (endX + tMinX < startX)) && ((endY < startY + tMaxY) && (startY > endY - tMaxY) && (endX > 0)))) {
-		if (endX > startX) direction = 'left';
-		else direction = 'right';
+	if (e.type == 'pointerleave' || pointer.axis === null) {
+		direction = 'none';
+	} else if (pointer.axis == 'horizontal' && horizontalPathLength >= settings.pointer.treshold.horizontal) {
+		direction = horizontalPath > 0 ? 'left' : 'right';
+	} else if (pointer.axis == 'vertical' && verticalPathLength >= settings.pointer.treshold.vertical) {
+		direction = verticalPath > 0 ? 'down' : 'up';
 	}
-	//vertical detection
-	else if ((((endY - tMinY > startY) || (endY + tMinY < startY)) && ((endX < startX + tMaxX) && (startX > endX - tMaxX) && (endY > 0)))) {
-		if (endY > startY) direction = 'down';
-		else direction = 'up';
-	}
+	if (settings.debug) console.log(`axis: ${pointer.axis},
+		horizontalPath: ${horizontalPath},
+		verticalPath: ${verticalPath},
+		horizontalPathLength: ${horizontalPathLength},
+		verticalPathLength: ${verticalPathLength},
+		direction: ${direction}`
+	);
 
 	if (direction == 'left' || direction == 'right') {
 		next(direction);
-	}
-	else if (direction == 'down' /*|| direction == 'up'*/) {
+	} else if (direction == 'down' || direction == 'up') {
 		close();
+	} else {
+		//console.log(pointer.target.element);
+		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
+		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open').forEach(
+			el => el.style.opacity = 1
+		);
 	}
 
-	direction = '';
-	flags.touch.init();
-	//flags.touch.disable = 0;
+	pointer.init();
+	//pointer.disable = 0;
+	if (settings.debug) console.groupEnd();
 }
 
 /**
@@ -818,7 +1008,7 @@ function position (el) {
 		};
 
 	while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-		_x += el.offsetLeft - el.scrollLeft;
+		_x += el.offsetLeft - ((window.pageXOffset || el.scrollLeft) - (el.clientLeft || 0));
 		_y += el.offsetTop - ((window.pageYOffset || el.scrollTop) - (el.clientTop || 0));
 
 		el = el.offsetParent;
@@ -912,7 +1102,7 @@ function init (userSettings) {
 	if (document.readyState !== 'complete') {
 		if (settings.debug) {
 			console.info('Init delayed');
-			console.groupEnd();
+			//console.groupEnd();
 		}
 
 		window.addEventListener('load', function () {
@@ -921,6 +1111,11 @@ function init (userSettings) {
 
 		return;
 	}
+
+	// test futures (history)
+	if (typeof history !== 'undefined') {
+		flags.history = true;
+    }
 
 	// declare variables
 	var section = document.querySelector(settings.id),
@@ -978,10 +1173,12 @@ function init (userSettings) {
 	window.addEventListener('orientationchange', resize, false);
 
 	// add touch event listner
-	if (settings.touch.enable) {
-		document.querySelector('.galerija-arrows').addEventListener('touchstart', touchStart, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchmove', touchMove, false);
-		document.querySelector('.galerija-arrows').addEventListener('touchend', touchEnd, false);
+	if (settings.pointer.enable && 'pointerEvents' in document.documentElement.style) {
+		document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
+		if (settings.debug) console.log('Pointer event support.');
 	}
 
 	// link blocker on figcaption>a clicks (SEO)

@@ -141,6 +141,7 @@
 
 	.galerija-controler.open {
 		z-index: 40;
+		touch-action: none;
 		@include flexie(column nowrap, flex-start, center);
 
 		.galerija-header {
@@ -179,6 +180,11 @@
 			width: 100%;
 			z-index: 50;
 			@include flexie(row nowrap, space-between, center);
+			cursor: grab;
+
+			&:active {
+				cursor: grabbing;
+			}
 
 			div {
 				//$navigation-size: 2.5em;
@@ -257,6 +263,10 @@
 			// Safari blurry images fix
 			backface-visibility: hidden;
 			transform: translateZ(0) scale(1.0, 1.0);
+		}
+
+		&.zoom figcaption {
+			opacity: 0;
 		}
 
 		&.hide, &.show {
