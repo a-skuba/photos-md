@@ -1173,19 +1173,12 @@ function init (userSettings) {
 	window.addEventListener('orientationchange', resize, false);
 
 	// add touch event listner
-	if (settings.pointer.enable) {
-		if ('pointerEvents' in document.documentElement.style) {
-			document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
-			document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
-			if (settings.debug) console.log('Pointer event support.');
-		}
-		else {
-			document.querySelector('.galerija-arrows').addEventListener('touchstart', pointerStart, false);
-			document.querySelector('.galerija-arrows').addEventListener('touchmove', pointerMove, false);
-			document.querySelector('.galerija-arrows').addEventListener('touchend', pointerEnd, false);
-		}
+	if (settings.pointer.enable && 'pointerEvents' in document.documentElement.style) {
+		document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
+		document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
+		if (settings.debug) console.log('Pointer event support.');
 	}
 
 	// link blocker on figcaption>a clicks (SEO)
