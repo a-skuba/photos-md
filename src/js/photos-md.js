@@ -49,9 +49,9 @@ var settings = {
 	// MERGE settings
 	'merge': function (userSettings) {
 		// TO DO: recursivly merge; run check function if present
-		// first merge debug, so logs can be done properly
+		// first merge debug, so logs can be done properly, also test url debug settings
 		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
-			this.debug = 1;
+			this.debug = true;
 		}
 		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
 		if (this.debug) console.warn('photosMd.settings.merge: TO DO: recursivly merge; run check function if present');
@@ -111,7 +111,6 @@ var viewport = {
 		return ((window.pageYOffset || doc.scrollTop) - (doc.clientTop || 0));
 	}
 }.init();
-
 
 /**
  * Figure
@@ -294,6 +293,28 @@ function open (e) {
 }
 
 /**
+ * Test query string
+ * Test if query string exists in url
+ *
+ * @param {String} key Search string name to test
+ * @param {String} url Url string to perform test on
+ * @returns {Bool} New url
+ */
+function testQueryString(key, url) {
+    if (!url) url = window.location.href;
+	let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi");
+
+	// if query exists (update/remove)
+	if (re.test(url)) {
+		console.warn('testQueryString true');
+		return true;
+	}
+
+	console.warn('testQueryString false');
+	return false;
+}
+
+/**
  * Manipulate query string
  * Add, update or remove query string by name. Empty value will remove query.
  * @author ellemayo
@@ -305,24 +326,34 @@ function open (e) {
  * @returns {String} New url
  */
 function updateQueryString(key, value, url) {
-    if (!url) url = window.location.href;
+	// if url isnt provided use current location
+	if (!url) url = window.location.href;
+	// set regex expression
     let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
-        hash;
+        hash, separator;
 
-    if (re.test(url)) {
+	// if query exists (update/remove)
+	if (re.test(url)) {
+		// if value not defined, remove query
+		//console.log(url.replace(re, '$3'));
+
         if (typeof value !== 'undefined' && value !== null)
-            return url.replace(re, '$1' + key + "=" + value + '$2$3');
-        else {
-            hash = url.split('#');
+			return url.replace(re, '$1' + key + "=" + value + '$2$3');
+
+		// else update query
+		else {
+			// preserve hash
+			hash = url.split('#');
             url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
             if (typeof hash[1] !== 'undefined' && hash[1] !== null)
                 url += '#' + hash[1];
             return url;
         }
-    }
+	}
+	// query doesnt exists (set)
     else {
         if (typeof value !== 'undefined' && value !== null) {
-            var separator = url.indexOf('?') !== -1 ? '&' : '?';
+            separator = url.indexOf('?') !== -1 ? '&' : '?';
             hash = url.split('#');
             url = hash[0] + separator + key + '=' + value;
             if (typeof hash[1] !== 'undefined' && hash[1] !== null)
@@ -925,8 +956,7 @@ function pointerMove(e) {
  */
 function pointerEnd(e) {
 	if (settings.debug) console.groupCollapsed('photoMd.pointerEnd:');
-	if (e.defaultPrevented
-		&& (pointer.disable || (pointer.axis === null && (e.type == 'pointerleave' || e.type == 'pointerup')))) {
+	if (pointer.target === null && (e.defaultPrevented || pointer.disable) || (pointer.type == 'pointerleave' && !(e.pressure > 0))) {
 		if (settings.debug) {
 			console.log('Pointer event: ', e);
 			console.groupEnd();
@@ -955,6 +985,7 @@ function pointerEnd(e) {
 		direction = '';
 
 	if (e.type == 'pointerleave' || pointer.axis === null) {
+		console.log(e);
 		direction = 'none';
 	} else if (pointer.axis == 'horizontal' && horizontalPathLength >= settings.pointer.treshold.horizontal) {
 		direction = horizontalPath > 0 ? 'left' : 'right';
@@ -974,7 +1005,8 @@ function pointerEnd(e) {
 	} else if (direction == 'down' || direction == 'up') {
 		close();
 	} else {
-		//console.log(pointer.target.element);
+		console.log(pointer, e);
+
 		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
 		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open').forEach(
 			el => el.style.opacity = 1
@@ -982,7 +1014,6 @@ function pointerEnd(e) {
 	}
 
 	pointer.init();
-	//pointer.disable = 0;
 	if (settings.debug) console.groupEnd();
 }
 
@@ -1191,7 +1222,7 @@ function init (userSettings) {
 	}
 
 	// open image from url
-	if (window.location.search.search("(?:/\?|&)p=.+") > 0) {
+	if (testQueryString('p')) {
 		var search = window.location.search,
 			src = decodeURIComponent('?' + search.slice(search.indexOf('p='), search.indexOf('.jpg') + 4));
 
