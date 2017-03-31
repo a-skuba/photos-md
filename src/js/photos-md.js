@@ -31,7 +31,7 @@ var settings = {
 		},
 		treshold: {
 			horizontal: 128,
-			vertical: 72
+			vertical: 130 //72
 		},
 		check: function () {
 			if (this.tresholdAxis.horizontal > this.treshold.horizontal) {
@@ -49,9 +49,9 @@ var settings = {
 	// MERGE settings
 	'merge': function (userSettings) {
 		// TO DO: recursivly merge; run check function if present
-		// first merge debug, so logs can be done properly, also test url debug settings
+		// first merge debug, so logs can be done properly
 		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
-			this.debug = true;
+			this.debug = 1;
 		}
 		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
 		if (this.debug) console.warn('photosMd.settings.merge: TO DO: recursivly merge; run check function if present');
@@ -112,6 +112,7 @@ var viewport = {
 	}
 }.init();
 
+
 /**
  * Figure
  * @private
@@ -163,7 +164,7 @@ var flags = {
  * Holds pointer state
  */
 var pointer = {
-	'disable': 0,
+	'disable': false,
 	'init': function () {
 		this.start = {
 			x: null,
@@ -173,6 +174,7 @@ var pointer = {
 			x: null,
 			y: null
 		};
+		this.started = false;
 		this.axis = null;
 		this.target = null;
 
@@ -293,28 +295,6 @@ function open (e) {
 }
 
 /**
- * Test query string
- * Test if query string exists in url
- *
- * @param {String} key Search string name to test
- * @param {String} url Url string to perform test on
- * @returns {Bool} New url
- */
-function testQueryString(key, url) {
-    if (!url) url = window.location.href;
-	let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi");
-
-	// if query exists (update/remove)
-	if (re.test(url)) {
-		console.warn('testQueryString true');
-		return true;
-	}
-
-	console.warn('testQueryString false');
-	return false;
-}
-
-/**
  * Manipulate query string
  * Add, update or remove query string by name. Empty value will remove query.
  * @author ellemayo
@@ -326,34 +306,24 @@ function testQueryString(key, url) {
  * @returns {String} New url
  */
 function updateQueryString(key, value, url) {
-	// if url isnt provided use current location
-	if (!url) url = window.location.href;
-	// set regex expression
+    if (!url) url = window.location.href;
     let re = new RegExp("([?&])" + key + "=.*?(&|#|$)(.*)", "gi"),
-        hash, separator;
+        hash;
 
-	// if query exists (update/remove)
-	if (re.test(url)) {
-		// if value not defined, remove query
-		//console.log(url.replace(re, '$3'));
-
+    if (re.test(url)) {
         if (typeof value !== 'undefined' && value !== null)
-			return url.replace(re, '$1' + key + "=" + value + '$2$3');
-
-		// else update query
-		else {
-			// preserve hash
-			hash = url.split('#');
+            return url.replace(re, '$1' + key + "=" + value + '$2$3');
+        else {
+            hash = url.split('#');
             url = hash[0].replace(re, '$1$3').replace(/(&|\?)$/, '');
             if (typeof hash[1] !== 'undefined' && hash[1] !== null)
                 url += '#' + hash[1];
             return url;
         }
-	}
-	// query doesnt exists (set)
+    }
     else {
         if (typeof value !== 'undefined' && value !== null) {
-            separator = url.indexOf('?') !== -1 ? '&' : '?';
+            var separator = url.indexOf('?') !== -1 ? '&' : '?';
             hash = url.split('#');
             url = hash[0] + separator + key + '=' + value;
             if (typeof hash[1] !== 'undefined' && hash[1] !== null)
@@ -374,7 +344,7 @@ function updateQueryString(key, value, url) {
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	if (pointer.disable) {
+	if (pointer.disable && pointer.axis === null) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -844,18 +814,29 @@ function keyevent(e) {
  * @param {PointerEvent} e	Pointer event object
  */
 function pointerStart(e) {
-	if (settings.debug) console.groupCollapsed('photosMd.pointerStart:');
-	if (pointer.disable || !(e.pressure > 0)) {
-		if (settings.debug) console.groupEnd();
+	if (!(e.pressure > 0) || pointer.started) {
 		return;
 	}
-	pointer.disable = 1;
-	e.currentTarget.classList.add('active');
-	e.currentTarget.offsetHeight;
+	if (settings.debug) {
+		console.groupCollapsed('pointerMove:');
+		console.log(e);
+	}
 
+	// compression benefits
+	let target = e.currentTarget;
+
+	// show 'grabbin' mouse
+	target.classList.add('active');
+	target.offsetHeight;
+	// attach move listner
+	target.addEventListener('pointermove', pointerMove, false);
+
+	// set pointer start position
 	pointer.start.x = e.clientX;
 	pointer.start.y = e.clientY;
+	pointer.started = true;
 
+	// find target
 	fig.forEach(figure => {
 		if (figure.element.classList.contains('zoom')) {
 			//console.log(figure);
@@ -863,6 +844,7 @@ function pointerStart(e) {
 		}
 	});
 
+	// disable default selection
 	e.preventDefault();
 	if (document.selection) {
 		document.selection.empty();
@@ -870,7 +852,6 @@ function pointerStart(e) {
 		window.getSelection().removeAllRanges();
 	}
 
-	pointer.disable = 0;
 	if (settings.debug) console.groupEnd();
 }
 
@@ -879,33 +860,29 @@ function pointerStart(e) {
  * @param {PointerEvent} e Pointer event object
  */
 function pointerMove(e) {
-	// exit on mouse default movement & zero pressure (add log on zero pressure)
-	if (pointer.start.x === null && pointer.start.y === null) {
+	if (pointer.started === false || !(e.pressure > 0)) {
+		pointer.init();
 		return;
-	} else if (!(e.pressure > 0)) {
-		if (settings.debug) {
-			console.groupCollapsed('photosMd.pointerMove:');
-			console.log('Zero pressure');
-			console.groupEnd();
-		}
-		return
 	}
-	if (settings.debug) console.groupCollapsed('photosMd.pointerMove:');
+	if (settings.debug) {
+		console.groupCollapsed('pointerMove:');
+		console.log(e);
+	}
 
 	// calc movement (move object)
 	let move = {
 		x: pointer.start.x - e.clientX,
 		y: pointer.start.y - e.clientY,
 		calcPath: function () {
-			this.xPath = this.x > 0 ? this.x : -this.x;
-			this.yPath = this.y > 0 ? this.y : -this.y;
+			this.xPath = Math.abs(this.x);
+			this.yPath = Math.abs(this.y);
 
 			return this;
 		}
 	}.calcPath();
 
 	// test if move is 0 (dont perform anything on pointer down) --is this really needed?
-	if (move.x == 0 && move.y == 0) {
+	if (move.xPath < 1 && move.yPath < 1) {
 		if (settings.debug) {
 			console.log('Zero move.');
 			console.groupEnd();
@@ -922,31 +899,35 @@ function pointerMove(e) {
 		}
 	}
 
-	let translateX = pointer.target.translate.x,
-		translateY = pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min;
+	let translate = {
+		x: pointer.target.translate.x,
+		y: pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min,
+		opacity: 1
+	};
+
 	// move image with pointer
 	if (pointer.axis == 'horizontal') {
-		translateX = translateX - move.x / pointer.target.scale.min;
+		translate.x -= move.x / pointer.target.scale.min;
 	} else if (pointer.axis == 'vertical') {
-		translateY = translateY - move.y / pointer.target.scale.min;
-		// fade blackout
-		let verticalPath = e.clientY - pointer.start.y,
-			verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
-			opacity = settings.pointer.treshold.vertical / verticalPathLength - 1,
-			view = document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open');
+		translate.x -= move.x / pointer.target.scale.min;
+		translate.y -= move.y / pointer.target.scale.min;
 
-		view.forEach(el => el.style.opacity = opacity);
+		translate.opacity -= Math.max(0, Math.min(1, move.yPath / settings.pointer.treshold.vertical));
+		//translate.scale += Math.max(0, Math.min(1, move.yPath / settings.pointer.treshold.vertical));
+		//(move.yPath - settings.pointer.tresholdAxis.vertical) / (settings.pointer.treshold.vertical - settings.pointer.tresholdAxis.vertical)
+
+		// fade blackout (use scale)
+		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open')
+			.forEach(el => el.style.opacity = translate.opacity);
 	} else {
-		translateX = translateX - move.x / pointer.target.scale.min;
-		translateY = translateY - move.y / pointer.target.scale.min;
+		translate.x -= move.x / pointer.target.scale.min;
+		translate.y -= move.y / pointer.target.scale.min;
 	}
-
 	// update image position (translate)
-	pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${translateX}px, ${translateY}px)`;
+	pointer.target.element.querySelector('div')
+		.style.transform = `scale(${pointer.target.scale.min}) translate(${translate.x}px, ${translate.y}px)`;
 
-	if (settings.debug) {
-		console.groupEnd();
-	}
+	if (settings.debug) console.groupEnd();
 }
 
 /**
@@ -955,17 +936,21 @@ function pointerMove(e) {
  * @param {Event} e Touch event object
  */
 function pointerEnd(e) {
-	if (settings.debug) console.groupCollapsed('photoMd.pointerEnd:');
-	if (pointer.target === null && (e.defaultPrevented || pointer.disable) || (pointer.type == 'pointerleave' && !(e.pressure > 0))) {
-		if (settings.debug) {
-			console.log('Pointer event: ', e);
-			console.groupEnd();
-		}
+	if (pointer.started === false) {
+		console.log(e.pointerType, e.type);
 		return;
 	}
+	if (settings.debug) {
+		console.groupCollapsed('pointerEnd:');
+		console.log(e);
+	}
 
-	e.currentTarget.classList.remove('active');
-	if (settings.debug) console.log('Pointer end:', e);
+	let target = e.currentTarget;
+	// hide 'grabbin' mouse
+	target.classList.remove('active');
+	target.offsetHeight;
+	// remove move listner
+	target.removeEventListener('pointermove', pointerMove, false);
 
 	// prevent selection on dragging
 	e.preventDefault();
@@ -978,39 +963,31 @@ function pointerEnd(e) {
 	pointer.end.x = e.clientX;
 	pointer.end.y = e.clientY;
 
-	let horizontalPath = pointer.end.x - pointer.start.x,
-		verticalPath = pointer.end.y - pointer.start.y,
-		horizontalPathLength = horizontalPath > 0 ? horizontalPath : -horizontalPath,
-		verticalPathLength = verticalPath > 0 ? verticalPath : -verticalPath,
-		direction = '';
+	let move = {
+		x: pointer.end.x - pointer.start.x,
+		y: pointer.end.y - pointer.start.y,
+		direction: ''
+	};
 
+	// determine direction
 	if (e.type == 'pointerleave' || pointer.axis === null) {
-		console.log(e);
-		direction = 'none';
-	} else if (pointer.axis == 'horizontal' && horizontalPathLength >= settings.pointer.treshold.horizontal) {
-		direction = horizontalPath > 0 ? 'left' : 'right';
-	} else if (pointer.axis == 'vertical' && verticalPathLength >= settings.pointer.treshold.vertical) {
-		direction = verticalPath > 0 ? 'down' : 'up';
+		move.direction = 'none';
+	} else if (pointer.axis == 'horizontal' && Math.abs(move.x) >= settings.pointer.treshold.horizontal) {
+		move.direction = move.x > 0 ? 'left' : 'right';
+	} else if (pointer.axis == 'vertical' && Math.abs(move.y) >= settings.pointer.treshold.vertical) {
+		move.direction = move.y > 0 ? 'down' : 'up';
 	}
-	if (settings.debug) console.log(`axis: ${pointer.axis},
-		horizontalPath: ${horizontalPath},
-		verticalPath: ${verticalPath},
-		horizontalPathLength: ${horizontalPathLength},
-		verticalPathLength: ${verticalPathLength},
-		direction: ${direction}`
-	);
 
-	if (direction == 'left' || direction == 'right') {
-		next(direction);
-	} else if (direction == 'down' || direction == 'up') {
+	// excetu direction based action
+	if (move.direction == 'left' || move.direction == 'right') {
+		next(move.direction);
+	} else if (move.direction == 'down' || move.direction == 'up') {
 		close();
 	} else {
-		console.log(pointer, e);
+		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${pointer.target.translate.y}px)`;
 
-		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${(pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min)}px)`;
-		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open').forEach(
-			el => el.style.opacity = 1
-		);
+		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open')
+			.forEach(el => el.style.opacity = 1);
 	}
 
 	pointer.init();
@@ -1206,7 +1183,7 @@ function init (userSettings) {
 	// add touch event listner
 	if (settings.pointer.enable && 'pointerEvents' in document.documentElement.style) {
 		document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
-		document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
+		//document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
 		document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
 		document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
 		if (settings.debug) console.log('Pointer event support.');
@@ -1222,7 +1199,7 @@ function init (userSettings) {
 	}
 
 	// open image from url
-	if (testQueryString('p')) {
+	if (window.location.search.search("(?:/\?|&)p=.+") > 0) {
 		var search = window.location.search,
 			src = decodeURIComponent('?' + search.slice(search.indexOf('p='), search.indexOf('.jpg') + 4));
 
