@@ -12,7 +12,9 @@ var gulp = require('gulp'),
     autoprefixer = require('gulp-autoprefixer'),
     ftp = require('gulp-ftp'),
     del = require('del'),
+    plumber = require('gulp-plumber'),
     babel = require('gulp-babel'),
+    sourcemaps = require('gulp-sourcemaps'),
     svgstore = require('gulp-svgstore'),
     svgmin = require('gulp-svgmin'),
     minify = require('gulp-minify'),
@@ -23,20 +25,25 @@ var ftpData = require('./ftp.json');
 // SASS
 gulp.task('sass', function () {
     return gulp.src('src/css/photos-md.scss')
+        .pipe(plumber())
         .pipe(sass({
             errLogToConsole: true,      // log to console
             outputStyle: 'compressed',  // nested, expanded, compact, compressed
         }))
         .pipe(autoprefixer(['last 3 versions', '> 1% in SI']))
         //.pipe(ftp(ftpData))
+        .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
 
 // JS
 gulp.task('js', function () {
     return gulp.src('src/js/*.js')
+        .pipe(plumber())
+        .pipe(sourcemaps.init())
         .pipe(babel({
             //"plugins": ['transform-es2015-modules-umd']
+            "sourceMaps": true,
             "presets": [
                 ["env", {
                     "targets": {
@@ -47,6 +54,7 @@ gulp.task('js', function () {
                 }]
             ],
         }))
+        .pipe(sourcemaps.write()) //('.'))
         .pipe(minify({
             preserveComments: 'some',
             ext: {
@@ -57,22 +65,24 @@ gulp.task('js', function () {
                 comments: 'some'
             },
             //exclude: ['/dir'],
-            ignoreFiles: ['.min.js']
+            ignoreFiles: ['.min.js', '*.map']
         }))
+        .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
 
 
 // SVG
 gulp.task('svg', function () {
-    return gulp
-        .src('src/sprite/!(symbol-defs)*.svg')
+    return gulp.src('src/sprite/!(symbol-defs)*.svg')
+        .pipe(plumber())
         .pipe(svgmin({
             plugins: [
                 { removeDesc: true }
             ]
         }))
         .pipe(svgstore())
+        .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
 
@@ -94,7 +104,7 @@ gulp.task('upload', ['demo'], function () {
 
 // DEMO
 gulp.task('demo', ['build'], function () {
-    return gulp.src(['dist/photos-md.?(css|js|min.js)', 'dist/sprite.svg'])
+    return gulp.src(['dist/photos-md.?(css|js|min.js|js.map)', 'dist/sprite.svg'])
         .pipe(gulp.dest('demo/assets'));
 });
 // DEV
@@ -121,6 +131,17 @@ gulp.task('server', function () {
 gulp.task('clean', function () {
     return del([
         'dist/*.css',
-        'dist/*.js'
+        'dist/*.js',
+        'dist/*.map',
+        'dist/*.svg'
+    ]);
+});
+// CLEAN-DEMO
+gulp.task('clean-all', function () {
+    return del([
+        'demo/assets/*.css',
+        'demo/assets/*.js',
+        'demo/assets/*.map',
+        'demo/assets/*.svg'
     ]);
 });

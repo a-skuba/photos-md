@@ -1,3 +1,13 @@
+<?php
+	// HOST
+	if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+		define('HOST', 'localhost');
+	} elseif (strpos($_SERVER['HTTP_HOST'], 'anej') !== false) {
+		define('HOST', 'anej');
+	} else {
+		define('HOST', 'skuba-buba.com');
+	}
+?>
 <!DOCTYPE html>
 <!--
 	Copyright (c) Anej Skubic | http://www.skuba-buba.com/
@@ -59,35 +69,36 @@
 			</div>
 		</div>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/01.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/01.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=01.jpg">Beautiful view</a></figcaption>
 		</figure>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/02.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/02.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=02.jpg">City</a></figcaption>
 		</figure>
 		<figure>
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/03.jpg" data-filter="all sth1" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/03.jpg" data-filter="all sth1" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=03.jpg">Lights</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/04.jpg" data-filter="all sth1 sth2" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/04.jpg" data-filter="all sth1 sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=04.jpg">Beach</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/05.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/05.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=05.jpg">Mountains</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/06.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/06.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=06.jpg">Dude</a></figcaption>
 		</figure>
 		<figure hidden="hidden">
-			<div><img src="http://www.skuba-buba.com/share/photos-md/assets/07.jpg" data-filter="all sth2" /></div>
+			<div><img src="http://pmd.<?= HOST ?>/assets/07.jpg" data-filter="all sth2" /></div>
 			<figcaption><a rel="nofollow" rel="noreferrer" href="?p=07.jpg">Forest</a></figcaption>
 		</figure>
 		<footer>
 			<button class="more" name="filter" data-filter="all">Prikaži vse slike..</button>
+			<button class="more" onclick="window.location.reload(1);">refresh</button>
 		</footer>
 	</section>
 	<script>
