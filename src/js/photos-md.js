@@ -165,9 +165,8 @@ var imgsBuffer = {
  * Holds application internal run state
  */
 var state = {
-	/*pointerDisable: false,
-	keyDisable: false,
-	transitionProgress: false,*/
+	interactionProgress: false,
+	transitionProgress: false,
 	imgGa: 0,
 	history: false
 };
@@ -222,6 +221,12 @@ function video (fig) {
 function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
+	if (state.transitionProgress) {
+		if (settings.debug) console.groupEnd();
+		return;
+	}
+	state.transitionProgress = true;
+
 	if (settings.debug) { console.info('Open target:', e.currentTarget); }
 	var element = e.currentTarget;
 	for (var i = 0; i < fig.length; i++) {
@@ -231,13 +236,13 @@ function open (e) {
 
 	element.element.style.width = element.size.width + 'px';
 
-	var div = element.element.querySelector('div'),
+	let div = element.element.querySelector('div'),
 		img = element.element.querySelector('img'),
 		section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
-		controler = section.querySelector('.galerija-controler');
+		controler = section.querySelector('.galerija-controler'),
+		transform = `scale(${element.scale.min}) translate(${element.translate.x}px, ${(element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min)}px)`;
 
-	var transform = `scale(${element.scale.min}) translate(${element.translate.x}px, ${(element.translate.y + (viewport.getScroll() - viewport.scroll) / element.scale.min)}px)`;
 	if (settings.debug) {
 		console.log(transform);
 		console.log(element.translate.y, viewport.scroll, window.pageYOffset, element.scale.min);
@@ -304,6 +309,7 @@ function open (e) {
 			eventValue: state.imgGa
 		});
 
+	state.transitionProgress = false;
 	if (settings.debug) console.groupEnd();
 }
 
@@ -352,16 +358,19 @@ function updateQueryString(key, value, url) {
  * Transition to next image
  * @public
  * @param {String|Event} e	String or object with class containing Left or Right
- * @returns
  */
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	//pointer.disable = true;
-	//state.imgNextTransitionProgress = true;
+	if (state.transitionProgress) {
+		if (settings.debug) console.groupEnd();
+		return;
+	}
+
+	state.transitionProgress = true;
+
 	// determine direction
-	var direction = 0;
-	//console.log(e, this);
+	let direction = 0;
 	if (settings.debug) console.info('Type of event/argument: [' + typeof e + ']', e);
 
 	if ((typeof e === 'string' && e.toLowerCase() == 'left') || (typeof e === 'object' && e.currentTarget.classList.contains('left'))) {
@@ -374,7 +383,7 @@ function next (e) {
 	}
 	else {
 		console.warn('Direction: Something went wrong here');
-		//pointer.disable = 0;
+		state.transitionProgress = false;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -393,9 +402,12 @@ function next (e) {
 
 	// check if its possible to get further running
 	if (figs.length < 2 || visibleFigs.length < 2) {
-		if (settings.debug) console.info('No. of figs: Only one fig');
-		//pointer.disable = 0;
-		if (settings.debug) console.groupEnd();
+		if (settings.debug) {
+			console.info('No. of figs: Only one fig');
+			console.groupEnd();
+		}
+
+		state.transitionProgress = false;
 		return;
 	}
 	else {
@@ -429,16 +441,16 @@ function next (e) {
 	fig[next].element.style.width = fig[next].size.width + 'px';
 
 	// set some variables
-	var nextDiv = fig[next].element.querySelector('div'),
+	let nextDiv = fig[next].element.querySelector('div'),
 		nextImg = fig[next].element.querySelector('img'),
 		currDiv = fig[curr].element.querySelector('div'),
 		currImg = fig[curr].element.querySelector('img');
 
 	// calc translate path size
-	var translateAnimation = (direction * viewport.width / 2 * 0.3);
+	let translateAnimation = (direction * viewport.width / 2 * 0.3);
 
 	// calc first & final position
-	var transformFirst = `scale(${fig[next].scale.min}) translate(${(fig[next].translate.x + translateAnimation)}px, ${(fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min)}px)`,
+	let transformFirst = `scale(${fig[next].scale.min}) translate(${(fig[next].translate.x + translateAnimation)}px, ${(fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min)}px)`,
 		transform = `scale(${fig[next].scale.min}) translate(${fig[next].translate.x}px, ${(fig[next].translate.y + (window.pageYOffset - viewport.scroll) / fig[next].scale.min)}px)`;
 
 	if (settings.debug) {
@@ -447,16 +459,17 @@ function next (e) {
 	}
 
 	// prepare next div for transition, 0s tranistion
-	nextDiv.style.transition = 'none !important';
-	nextDiv.style.opacity = 0;
-	nextDiv.style.position = 'fixed';
-	nextDiv.style.zIndex = 30;
-	nextDiv.style.backgroundColor = 'rgba(0,0,0,.7)';
-	nextDiv.style.top = (fig[next].position.top - window.pageYOffset + viewport.scroll) + 'px';
-	nextDiv.style.left = fig[next].position.left + 'px';
-	nextDiv.style.height = fig[next].size.height + 'px';
-	nextDiv.style.width = fig[next].size.width + 'px';
-	nextDiv.style.transform = transformFirst;
+	nextDiv.style.cssText = `transition: none !important;
+		opacity: 0;
+		position: fixed;
+		z-index: 30;
+		background-color: rgba(0,0,0,.7);
+		top: ${fig[next].position.top - window.pageYOffset + viewport.scroll}px;
+		left: ${fig[next].position.left}px;
+		height: ${fig[next].size.height}px;
+		width: ${fig[next].size.width}px;
+		transform: ${transformFirst};`;
+
 	// Trigger a reflow, flushing the CSS changes, hack for transition
 	nextDiv.offsetHeight;
 
@@ -467,7 +480,7 @@ function next (e) {
 		nextImg.setAttribute('src', src(nextImg));
 
 	// replace transform->translateX value
-	var currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation),
+	let currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation),
 		currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, `translate(${currTranslateX}px`);
 	// apply exit to current div
 	currDiv.style.transform = currTranslate;
@@ -480,21 +493,17 @@ function next (e) {
 	// wait for animation and clean up
 	var timer = setTimeout(function () {
 		clearTimeout(timer);
-		//currDiv.style.position = '';
-		//currDiv.style.zIndex = '';
-		//currDiv.style.top = '';
-		//currDiv.style.left = '';
+
 		if (!fig[curr].element.classList.contains('video'))
 			currImg.setAttribute('src', src(currImg));
+
 		currDiv.removeAttribute('style');
 		fig[curr].element.removeAttribute('style');
 
 		fig[curr].element.classList.remove('zoom');
 		fig[next].element.classList.add('zoom');
 
-		//state.imgNextTransitionProgress = false;
-		//pointer.disable = false;
-
+		state.transitionProgress = false;
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
 
@@ -515,6 +524,8 @@ function next (e) {
 			eventLabel: url.replace('?p=', ''),
 			eventValue: state.imgGa
 		});
+
+	// state.transitionProgress > timer
 }
 
 /**
@@ -524,9 +535,13 @@ function next (e) {
 function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
-	//pointer.disable = 1;
+	if (state.transitionProgress) {
+		if (settings.debug) console.groupEnd();
+		return;
+	}
+	state.transitionProgress = true;
 
-	var element = document.querySelector('.zoom'),
+	let element = document.querySelector('.zoom'),
 		img = element.querySelector('img'),
 		section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
@@ -546,19 +561,17 @@ function close () {
 
 	var timer = setTimeout(function () {
 		clearTimeout(timer);
-		div.style.position = '';
-		div.style.zIndex = '';
-		div.style.top = '';
-		div.style.left = '';
 
-		div.removeAttribute('style');
-		element.classList.remove('zoom');
-		element.removeAttribute('style');
-		figcaption.removeAttribute('style');
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
-		dimmer.removeAttribute('style');
-		//pointer.disable = 0;
+
+		[div, element, figcaption, dimmer].forEach(el => {
+			el.removeAttribute('style');
+		});
+		element.classList.remove('zoom');
+
+		state.transitionProgress = false;
+		if (settings.debug) console.groupEnd();
 	}, settings.transition);
 
 	document.querySelector('html').classList.remove('lock');
@@ -581,7 +594,7 @@ function close () {
 			eventValue: state.imgGa
 		});
 
-	if (settings.debug) console.groupEnd();
+	// state.transitionProgress > timer
 }
 
 /**
@@ -622,9 +635,9 @@ function filter (e) {
 	// hide or show images
 	var figs = galerija.querySelectorAll('figure');
 	if (settings.debug) console.groupCollapsed('filter loop:');
-	for (var i = 0; i < figs.length; i++) {
+	for (let i = 0; i < figs.length; i++) {
 		// copy data-filter atribute to variable
-		var set = figs[i].querySelector('img').getAttribute('data-filter');
+		let set = figs[i].querySelector('img').getAttribute('data-filter');
 		if (settings.debug) console.info(`Data filter: ${set}`);
 
 		// check if filter name is in given varirable & set show/hide class
@@ -640,21 +653,17 @@ function filter (e) {
 		// wait animation, than add attribute hidden
 		var timer = setTimeout(function () {
 			clearTimeout(timer);
-			var galerija = document.querySelector(settings.id),
-				figs = galerija.querySelectorAll('figure'),
-				i = 0;
 
-			for (i = 0; i < figs.length; i++) {
-				if (figs[i].classList.contains('hide')) {
-					figs[i].setAttribute('hidden', true);
-					figs[i].classList.remove('hide');
+			document.querySelectorAll(`${settings.id} figure`).forEach(fig => {
+				if (fig.classList.contains('hide')) {
+					fig.setAttribute('hidden', true);
+					fig.classList.remove('hide');
+				} else if (fig.classList.contains('show')) {
+					fig.removeAttribute('hidden');
+					fig.clientHeight;
+					fig.classList.remove('show');
 				}
-				else if (figs[i].classList.contains('show')) {
-					figs[i].removeAttribute('hidden');
-					figs[i].clientHeight;
-					figs[i].classList.remove('show');
-				}
-			}
+			});
 		}, settings.transition / 2);
 	}
 	if (settings.debug) console.groupEnd();
@@ -700,32 +709,24 @@ function resize () {
 	if (section.querySelector('.zoom') !== null) {
 		if (settings.debug) console.groupCollapsed('Zoomed:');
 
-		for (var i = 0; fig.length > i; i++) {
-			if (fig[i].element.classList.contains('zoom')) {
+		let obj = fig.find(el => el.element.classList.contains('zoom'));
 
-				var obj = fig[i];
-				if (settings.debug) console.info(obj);
-
-				break;
-			}
-		}
-
-		var div = obj.element.querySelector('div');
-
-		var transform = `scale(${obj.scale.min}) translate(${obj.translate.x}px, ${(obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min)}px)`;
 		if (settings.debug) {
 			console.info(transform);
 			console.info(obj.translate.y, viewport.scroll, window.pageYOffset, obj.scale.min);
 		}
 
-		div.style.position = 'fixed';
-		div.style.zIndex = 30;
-		div.style.backgroundColor = 'rgba(0,0,0,.7)';
-		div.style.top = (obj.position.top - window.pageYOffset + viewport.scroll) + 'px';
-		div.style.left = obj.position.left + 'px';
-		div.style.height = obj.size.height + 'px';
-		div.style.width = obj.size.width + 'px';
-		div.style.transform = transform;
+		obj.element.querySelector('div').style.cssText = `
+			position: fixed;
+			z-index: 30;
+			background-color: rgba(0,0,0,.7);
+			top: ${obj.position.top - window.pageYOffset + viewport.scroll}px;
+			left: ${obj.position.left}px;
+			height: ${obj.size.height}px;
+			width: ${obj.size.width}px;
+			transform:
+				scale(${obj.scale.min})
+				translate(${obj.translate.x}px, ${(obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min)}px);`;
 
 		if (settings.debug) console.groupEnd();
 	}
@@ -747,32 +748,29 @@ function resize () {
 function keyevent(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.keyevent:');
 
-	//pointer.disable = 1;
+	if (state.interactionProgress || state.transitionProgress) {
+		if (settings.debug) console.groupEnd();
+		return;
+	}
+	state.interactionProgress = true;
 
 	// pass and test event object
 	e = e || window.event;
 	if (settings.debug) console.info('KEY: ', e.keyCode, e.key);
 	// exit if key not registered in settings
 	if (!(e.keyCode in settings.keys)) {
+		state.interactionProgress = false;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
 
-	// gallery buttons
-	if (document.querySelector('.zoom')) {
+	// gallery key buttons
+	if (document.querySelector('.zoom') !== null) {
 		if (settings.debug) console.info('Working on keyevent');
-
-		//pointer.disable = true;
-		var timer = setTimeout(function () {
-			clearTimeout(timer);
-			//pointer.disable = false;
-			if (settings.debug) console.info('Clear "disable" flag');
-			if (settings.debug) console.groupEnd();
-		}, settings.transition);
 
 		switch (settings.keys[e.keyCode]) {
 			case 'close':
-				close(); return;
+				close(); break;
 			case 'next-left':
 			case 'previous':
 				next('left'); break;
@@ -780,11 +778,12 @@ function keyevent(e) {
 			case 'next':
 				next('right'); break;
 			default:
-				console.warn(`key events: ${e.keyCode} is not found in keys (settings.keys).`)
+				console.warn(`key events: ${e.keyCode} is not found in keys (settings.keys).`);
 		}
-	} else if (settings.debug) {
-		console.groupEnd();
 	}
+
+	state.interactionProgress = false;
+	if (settings.debug) console.groupEnd();
 }
 
 /**
@@ -793,14 +792,14 @@ function keyevent(e) {
  * @param {PointerEvent} e	Pointer event object
  */
 function pointerStart(e) {
-	if (!(e.pressure > 0) || pointer.started) {
+	if (!(e.pressure > 0) || pointer.started || state.interactionProgress || state.transitionProgress) {
 		return;
 	}
 	if (settings.debug) {
 		console.groupCollapsed('pointerStart:');
 		console.log(e);
 	}
-	//pointer.disable = true;
+	state.interactionProgress = true;
 	pointer.started = true;
 
 	// compression benefits
@@ -837,7 +836,7 @@ function pointerStart(e) {
  * @param {PointerEvent} e Pointer event object
  */
 function pointerMove(e) {
-	if (pointer.started === false || !(e.pressure > 0)) {
+	if (pointer.started === false || !(e.pressure > 0) || state.transitionProgress) {
 		pointer.init();
 		return;
 	}
@@ -913,7 +912,7 @@ function pointerMove(e) {
  * @param {Event} e Touch event object
  */
 function pointerEnd(e) {
-	if (pointer.started === false) {
+	if (pointer.started === false || state.transitionProgress) {
 		return;
 	}
 	if (settings.debug) {
@@ -971,6 +970,7 @@ function pointerEnd(e) {
 				.forEach(el => el.style.opacity = 1);
 	}
 
+	state.interactionProgress = false;
 	pointer.init();
 	if (settings.debug) console.groupEnd();
 }
@@ -1226,4 +1226,4 @@ function register(el) {
 	//return tmp;
 }
 
-export { settings, open, next, close, init }
+export { settings, open, next, close, init, register }
