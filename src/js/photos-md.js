@@ -165,7 +165,9 @@ var imgsBuffer = {
  * Holds application internal run state
  */
 var state = {
-	imgNextTransitionProgress: false,
+	/*pointerDisable: false,
+	keyDisable: false,
+	transitionProgress: false,*/
 	imgGa: 0,
 	history: false
 };
@@ -176,8 +178,7 @@ var state = {
  * Holds pointer state
  */
 var pointer = {
-	'disable': false,
-	'init': function () {
+	init: function () {
 		this.start = {
 			x: null,
 			y: null
@@ -356,11 +357,7 @@ function updateQueryString(key, value, url) {
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	if (pointer.disable && pointer.axis === null) { // || state.imgNextTransitionProgress === true) {
-		if (settings.debug) console.groupEnd();
-		return;
-	}
-	pointer.disable = true;
+	//pointer.disable = true;
 	//state.imgNextTransitionProgress = true;
 	// determine direction
 	var direction = 0;
@@ -377,7 +374,7 @@ function next (e) {
 	}
 	else {
 		console.warn('Direction: Something went wrong here');
-		pointer.disable = 0;
+		//pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -397,7 +394,7 @@ function next (e) {
 	// check if its possible to get further running
 	if (figs.length < 2 || visibleFigs.length < 2) {
 		if (settings.debug) console.info('No. of figs: Only one fig');
-		pointer.disable = 0;
+		//pointer.disable = 0;
 		if (settings.debug) console.groupEnd();
 		return;
 	}
@@ -496,7 +493,7 @@ function next (e) {
 		fig[next].element.classList.add('zoom');
 
 		//state.imgNextTransitionProgress = false;
-		pointer.disable = false;
+		//pointer.disable = false;
 
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
@@ -527,11 +524,7 @@ function next (e) {
 function close () {
 	if (settings.debug) console.groupCollapsed('photosMd.close:');
 
-	if (pointer.disable) {
-		if (settings.debug) console.groupEnd();
-		return;
-	}
-	pointer.disable = 1;
+	//pointer.disable = 1;
 
 	var element = document.querySelector('.zoom'),
 		img = element.querySelector('img'),
@@ -565,7 +558,7 @@ function close () {
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
 		dimmer.removeAttribute('style');
-		pointer.disable = 0;
+		//pointer.disable = 0;
 	}, settings.transition);
 
 	document.querySelector('html').classList.remove('lock');
@@ -753,11 +746,7 @@ function resize () {
  */
 function keyevent(e) {
 	if (settings.debug) console.groupCollapsed('photosMd.keyevent:');
-	// disable multiple trigers
-	if (pointer.disable) {
-		if (settings.debug) console.groupEnd();
-		return;
-	}
+
 	//pointer.disable = 1;
 
 	// pass and test event object
@@ -770,13 +759,13 @@ function keyevent(e) {
 	}
 
 	// gallery buttons
-	if (document.querySelector('.zoom') && !pointer.disable) {
+	if (document.querySelector('.zoom')) {
 		if (settings.debug) console.info('Working on keyevent');
 
-		pointer.disable = true;
+		//pointer.disable = true;
 		var timer = setTimeout(function () {
 			clearTimeout(timer);
-			pointer.disable = false;
+			//pointer.disable = false;
 			if (settings.debug) console.info('Clear "disable" flag');
 			if (settings.debug) console.groupEnd();
 		}, settings.transition);
@@ -808,10 +797,11 @@ function pointerStart(e) {
 		return;
 	}
 	if (settings.debug) {
-		console.groupCollapsed('pointerMove:');
+		console.groupCollapsed('pointerStart:');
 		console.log(e);
 	}
-	pointer.disable = true;
+	//pointer.disable = true;
+	pointer.started = true;
 
 	// compression benefits
 	let target = e.currentTarget;
@@ -825,14 +815,10 @@ function pointerStart(e) {
 	// set pointer start position
 	pointer.start.x = e.clientX;
 	pointer.start.y = e.clientY;
-	pointer.started = true;
 
 	// find target
-	fig.forEach(figure => {
-		if (figure.element.classList.contains('zoom')) {
-			//console.log(figure);
-			pointer.target = figure;
-		}
+	pointer.target = fig.find(figure => {
+		return figure.element.classList.contains('zoom');
 	});
 
 	// disable default selection
@@ -968,7 +954,7 @@ function pointerEnd(e) {
 		move.direction = move.y > 0 ? 'down' : 'up';
 	}
 
-	pointer.disable = false;
+	//pointer.disable = false;
 	// execute direction based action
 	switch (move.direction) {
 		case 'left':
@@ -1173,18 +1159,18 @@ function init (userSettings) {
 
 		// if found, open it
 		if (typeof toOpen !== 'undefined' ) {
-			if (settings.debug) console.info('Url search match: ', el.history);
+			if (settings.debug) console.info('Url search match: ', toOpen.history);
 
 			// SAFE: Dont open hidden image - dont show empty viewer!
-			if (!(el.element.getAttribute('hidden') == null)) {
-				el.element.removeAttribute('hidden');
-				el.element.offsetHeight;
+			if (!(toOpen.element.getAttribute('hidden') == null)) {
+				toOpen.element.removeAttribute('hidden');
+				toOpen.element.offsetHeight;
 				resize();
 			}
 
 			if (settings.id.search('#') >= 0)
 				window.location.hash = settings.id;
-			open({currentTarget: el.element});
+			open({currentTarget: toOpen.element});
 		}
 	}
 
