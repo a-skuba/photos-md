@@ -19,11 +19,11 @@
  * Holds global settings for photosMd
  */
 var settings = {
-	'id': '#galerija',	// id for section
-	'transition': 500,	// animation and transition duration
-	'zoomMethode': 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
-	'debug': 0,
-	'pointer': {
+	id: '#galerija',	// id for section
+	transition: 500,	// animation and transition duration
+	zoomMethode: 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
+	debug: 0,
+	pointer: {
 		enable: true,
 		tresholdAxis: {
 			horizontal: 100,
@@ -44,10 +44,17 @@ var settings = {
 			return this;
 		}
 	}.check(),
-	'create': [],
-	'preview': 1,
+	keys: {
+		27: 'close',	// ESCAPE
+		37: 'previous',	// LEFT ARROW
+		38: 'close',	// UP ARROW
+		39: 'next',		// RIGHT ARROW
+		40: 'close'		// DOWN ARROW
+	},
+	//create: [],
+	preview: 1,
 	// MERGE settings
-	'merge': function (userSettings) {
+	merge: function (userSettings) {
 		// TO DO: recursivly merge; run check function if present
 		// first merge debug, so logs can be done properly
 		if (userSettings.hasOwnProperty('debug') && userSettings['debug'] == 1) {
@@ -152,10 +159,15 @@ var imgsBuffer = {
 	}
 };
 
-var flags = {
-	'imgNextTransitionProgress': 0,
-	'imgGa': 0,
-	'history': false
+/**
+ * State
+ * @private
+ * Holds application internal run state
+ */
+var state = {
+	imgNextTransitionProgress: false,
+	imgGa: 0,
+	history: false
 };
 
 /**
@@ -274,7 +286,7 @@ function open (e) {
 	document.querySelector('body').classList.add('lock');
 
 	// url history (open)
-	if (flags.history) {
+	if (state.history) {
 		var title = element.element.querySelector('figcaption > a').innerHTML,
 			queryValue = element.element.querySelector('figcaption > a').getAttribute('href').substr(3),
 			url = updateQueryString('p', queryValue);
@@ -288,7 +300,7 @@ function open (e) {
 			eventCategory: 'photosMd',
 			eventAction: 'Open',
 			eventLabel: url,
-			eventValue: flags.imgGa
+			eventValue: state.imgGa
 		});
 
 	if (settings.debug) console.groupEnd();
@@ -344,11 +356,12 @@ function updateQueryString(key, value, url) {
 function next (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.next:');
 
-	if (pointer.disable && pointer.axis === null) {
+	if (pointer.disable && pointer.axis === null) { // || state.imgNextTransitionProgress === true) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
-	pointer.disable = 1;
+	pointer.disable = true;
+	//state.imgNextTransitionProgress = true;
 	// determine direction
 	var direction = 0;
 	//console.log(e, this);
@@ -482,13 +495,14 @@ function next (e) {
 		fig[curr].element.classList.remove('zoom');
 		fig[next].element.classList.add('zoom');
 
-		pointer.disable = 0;
+		//state.imgNextTransitionProgress = false;
+		pointer.disable = false;
 
 		if (settings.debug) console.groupEnd();
 	}, settings.transition);
 
 	// url history change (next)
-	if (flags.history) {
+	if (state.history) {
 		let title = fig[next].element.querySelector('figcaption > a').innerHTML,
 			queryValue = fig[next].element.querySelector('figcaption > a').getAttribute('href').substr(3),
 			url = updateQueryString('p', queryValue);
@@ -502,7 +516,7 @@ function next (e) {
 			eventCategory: 'photosMd',
 			eventAction: 'Next',
 			eventLabel: url.replace('?p=', ''),
-			eventValue: flags.imgGa
+			eventValue: state.imgGa
 		});
 }
 
@@ -558,7 +572,7 @@ function close () {
 	document.querySelector('body').classList.remove('lock');
 
 	// url history (close)
-	if (flags.history) {
+	if (state.history) {
 		var title = document.querySelector('title').innerHTML,
 			url = updateQueryString('p');
 
@@ -571,7 +585,7 @@ function close () {
 			eventCategory: 'photosMd',
 			eventAction: 'Close',
 			eventLabel: href,
-			eventValue: flags.imgGa
+			eventValue: state.imgGa
 		});
 
 	if (settings.debug) console.groupEnd();
@@ -681,37 +695,16 @@ function resize () {
 		//var start = new Date().getTime();
 	}
 
-	var section = document.querySelector(settings.id),
-		figure = section.querySelectorAll('figure'),
-		zoomed = section.querySelector('.zoom'),
-		i = 0;
+	let section = document.querySelector(settings.id);
 
 	viewport.init();
 
-	for (i = 0; figure.length > i; i++) {
-		// skip hidden elements
-		if (!(figure[i].getAttribute('hidden') == null)) continue;
+	// register figures
+	section.querySelectorAll('figure:not([hidden])').forEach(el => {
+		register(el);
+	});
 
-		var tmpFig = position(figure[i]);
-
-		tmpFig.scale = {
-			'x': viewport.width / (tmpFig.size.width),
-			'y': viewport.height / (tmpFig.size.height),
-			'init': function () {
-				this.min = this.x > this.y ? this.y : this.x;
-				delete this.init;
-				return this;
-			}
-		}.init();
-
-		tmpFig.translate = translate(tmpFig);
-		tmpFig.element = figure[i];
-
-		if (settings.debug) console.info(tmpFig.translate);
-		fig[i] = tmpFig;
-	}
-
-	if (zoomed) {
+	if (section.querySelector('.zoom') !== null) {
 		if (settings.debug) console.groupCollapsed('Zoomed:');
 
 		for (var i = 0; fig.length > i; i++) {
@@ -770,41 +763,38 @@ function keyevent(e) {
 	// pass and test event object
 	e = e || window.event;
 	if (settings.debug) console.info('KEY: ', e.keyCode, e.key);
-	if (e.keyCode != 27 && e.keyCode != 37 && e.keyCode != 39 && e.keyCode != 40) {
+	// exit if key not registered in settings
+	if (!(e.keyCode in settings.keys)) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
 
 	// gallery buttons
-	if (document.querySelector('.zoom') && !flags.imgNextTransitionProgress) {
-
+	if (document.querySelector('.zoom') && !pointer.disable) {
 		if (settings.debug) console.info('Working on keyevent');
 
-		flags.imgNextTransitionProgress = 1;
+		pointer.disable = true;
 		var timer = setTimeout(function () {
 			clearTimeout(timer);
-			flags.imgNextTransitionProgress = 0;
-			if (settings.debug) console.info('Clear "imgNextTransitionProgress" flag');
+			pointer.disable = false;
+			if (settings.debug) console.info('Clear "disable" flag');
 			if (settings.debug) console.groupEnd();
 		}, settings.transition);
 
-		// ESCAPE:	27
-		// LEFT: 	37
-		// RIGHT:	39
-		if (e.keyCode == 27 || e.keyCode == 40) {
-			close();
-			//if (settings.debug) console.groupEnd(); // ni potreben ker je timer zgoraj
-			return;
+		switch (settings.keys[e.keyCode]) {
+			case 'close':
+				close(); return;
+			case 'next-left':
+			case 'previous':
+				next('left'); break;
+			case 'next-right':
+			case 'next':
+				next('right'); break;
+			default:
+				console.warn(`key events: ${e.keyCode} is not found in keys (settings.keys).`)
 		}
-		else if (e.keyCode == 37) {
-			next('left');
-		}
-		else if (e.keyCode == 39) {
-			next('right');
-		}
-	}
-	else {
-		if (settings.debug) console.groupEnd();
+	} else if (settings.debug) {
+		console.groupEnd();
 	}
 }
 
@@ -821,6 +811,7 @@ function pointerStart(e) {
 		console.groupCollapsed('pointerMove:');
 		console.log(e);
 	}
+	pointer.disable = true;
 
 	// compression benefits
 	let target = e.currentTarget;
@@ -937,7 +928,6 @@ function pointerMove(e) {
  */
 function pointerEnd(e) {
 	if (pointer.started === false) {
-		console.log(e.pointerType, e.type);
 		return;
 	}
 	if (settings.debug) {
@@ -978,16 +968,21 @@ function pointerEnd(e) {
 		move.direction = move.y > 0 ? 'down' : 'up';
 	}
 
-	// excetu direction based action
-	if (move.direction == 'left' || move.direction == 'right') {
-		next(move.direction);
-	} else if (move.direction == 'down' || move.direction == 'up') {
-		close();
-	} else {
-		pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${pointer.target.translate.y}px)`;
-
-		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open')
-			.forEach(el => el.style.opacity = 1);
+	pointer.disable = false;
+	// execute direction based action
+	switch (move.direction) {
+		case 'left':
+		case 'right':
+			next(move.direction);
+			break;
+		case 'up':
+		case 'down':
+			close();
+			break;
+		default:
+			pointer.target.element.querySelector('div').style.transform = `scale(${pointer.target.scale.min}) translate(${pointer.target.translate.x}px, ${pointer.target.translate.y}px)`;
+			document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open')
+				.forEach(el => el.style.opacity = 1);
 	}
 
 	pointer.init();
@@ -1022,8 +1017,6 @@ function position (el) {
 		el = el.offsetParent;
 	}
 	_y += viewport.getScroll();
-	//_y -= _margin.top;
-	//_x -= _margin.left;
 
 	return {
 		size: _size,
@@ -1122,44 +1115,18 @@ function init (userSettings) {
 
 	// test futures (history)
 	if (typeof history !== 'undefined') {
-		flags.history = true;
+		state.history = true;
     }
 
 	// declare variables
-	var section = document.querySelector(settings.id),
+	let section = document.querySelector(settings.id),
 		dimmer = section.querySelector('.galerija-dimmer'),
-		controler = section.querySelector('.galerija-controler'),
-		figure = section.querySelectorAll('figure');
+		controler = section.querySelector('.galerija-controler');
 
-	// spin throug figures
-	for (var i = 0; figure.length > i; i++) {
-		// get position
-		var tmpFig = position(figure[i]);
-
-		// calc scale
-		tmpFig.scale = {
-			'x': viewport.width / (tmpFig.size.width),
-			'y': viewport.height / (tmpFig.size.height),
-			'init': function () {
-				this.min = this.x > this.y ? this.y : this.x;
-				delete this.init;
-				return this;
-			}
-		}.init();
-
-		// get translation values
-		tmpFig.translate = translate(tmpFig);
-
-		// add reference to element and url history
-		tmpFig.element = figure[i];
-		tmpFig.history = figure[i].querySelector('figcaption > a').getAttribute('href');
-
-		// add to array
-		fig.push(tmpFig);
-
-		// bind event listner for open
-		figure[i].addEventListener('click', open, false);
-	}
+	// register figures
+	section.querySelectorAll('figure').forEach(el => {
+		register(el);
+	});
 
 	// add event listners for control buttons in full view mode
 	controler.querySelector('.galerija-controler .back').addEventListener('click', close, false);
@@ -1167,10 +1134,10 @@ function init (userSettings) {
 	controler.querySelector('.galerija-controler .right').addEventListener('click', next, false);
 
 	// add event listners for filter buttons
-	var filterBtns = section.querySelectorAll('.filter button[name="filter"], footer button[name="filter"][data-filter="all"]');
-	for (var i = 0; i < filterBtns.length; i++) {
-		filterBtns[i].addEventListener('click', filter, false);
-	}
+	section.querySelectorAll('.filter button[name="filter"], footer button[name="filter"][data-filter="all"]').forEach(
+		btn => btn.addEventListener('click', filter, false)
+	);
+
 	// add event listner for keyboard
 	document.addEventListener('keydown', keyevent, false);
 	if (document.attachEvent)
@@ -1180,46 +1147,44 @@ function init (userSettings) {
 	window.addEventListener('resize', resize, false);
 	window.addEventListener('orientationchange', resize, false);
 
-	// add touch event listner
+	// add pointer event listner
 	if (settings.pointer.enable && 'pointerEvents' in document.documentElement.style) {
+		if (settings.debug) console.info('Pointer event support.');
 		document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
-		//document.querySelector('.galerija-arrows').addEventListener('pointermove', pointerMove, false);
 		document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
 		document.querySelector('.galerija-arrows').addEventListener('pointerleave', pointerEnd, false);
-		if (settings.debug) console.log('Pointer event support.');
 	}
 
 	// link blocker on figcaption>a clicks (SEO)
-	var links = document.querySelectorAll('#galerija figcaption > a');
-	for (var i = 0; i < links.length; ++i) {
-		links[i].addEventListener('click', function (e) {
+	document.querySelectorAll(`${settings.id} figcaption > a`).forEach(link => {
+		link.addEventListener('click', e => {
 			e.preventDefault();
 			return false;
 		}, false);
-	}
+	});
 
 	// open image from url
 	if (window.location.search.search("(?:/\?|&)p=.+") > 0) {
-		var search = window.location.search,
-			src = decodeURIComponent('?' + search.slice(search.indexOf('p='), search.indexOf('.jpg') + 4));
+		let search = window.location.search,
+			src = decodeURIComponent('?' + search.slice(search.indexOf('p='), search.indexOf('.jpg') + 4)),
+			toOpen = fig.find(el => {
+				return el.history === src;
+			});
 
-		for (var j = 0; j < fig.length; j++) {
-			if (fig[j].history == src) {
-				if (settings.debug) console.info('Url search match: ', fig[j].history);
+		// if found, open it
+		if (typeof toOpen !== 'undefined' ) {
+			if (settings.debug) console.info('Url search match: ', el.history);
 
-				// SAFE: Dont open hidden image - dont show empty viewer!
-				if (!(fig[j].element.getAttribute('hidden') == null)) {
-					fig[j].element.removeAttribute('hidden');
-					fig[j].element.offsetHeight;
-					resize();
-				}
-
-				if (settings.id.search('#') >= 0)
-					window.location.hash = settings.id;
-
-				open({ 'currentTarget': fig[j].element });
-				break;
+			// SAFE: Dont open hidden image - dont show empty viewer!
+			if (!(el.element.getAttribute('hidden') == null)) {
+				el.element.removeAttribute('hidden');
+				el.element.offsetHeight;
+				resize();
 			}
+
+			if (settings.id.search('#') >= 0)
+				window.location.hash = settings.id;
+			open({currentTarget: el.element});
 		}
 	}
 
@@ -1228,6 +1193,51 @@ function init (userSettings) {
 		//console.profileEnd();
 		console.groupEnd();
 	}
+}
+
+/**
+ * Register figures objects
+ *
+ * @param {Element} el	figure object from DOM
+ * @returns {Object} 	**disabled** photosMd figure object {size, position, scale, translate,..}
+ */
+function register(el) {
+	// get position
+	let tmp = position(el),
+		notRegistered = true;
+
+	// calc scale
+	tmp.scale = {
+		'x': viewport.width / tmp.size.width,
+		'y': viewport.height / tmp.size.height,
+		'init': function () {
+			this.min = this.x > this.y ? this.y : this.x;
+			delete this.init;
+			return this;
+		}
+	}.init();
+
+	// get translation values
+	tmp.translate = translate(tmp);
+
+	// add reference to element and url history
+	tmp.element = el;
+	tmp.history = el.querySelector('figcaption > a').getAttribute('href');
+
+	for (let i = 0; i < fig.length; i++) {
+		if (fig[i].element === el) {
+			notRegistered = false;
+			fig[i] = tmp;
+			break;
+		}
+	}
+
+	if (notRegistered) {
+		// bind event listner for open, only once (init)
+		tmp.element.addEventListener('click', open, false);
+		fig.push(tmp);
+	}
+	//return tmp;
 }
 
 export { settings, open, next, close, init }
