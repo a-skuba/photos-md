@@ -21,7 +21,6 @@
 var settings = {
 	id: '#galerija',	// id for section
 	transition: 500,	// animation and transition duration
-	zoomMethode: 1,	// zoom methode: 1 - position: fixed, 2 - position: absolute
 	debug: 0,
 	pointer: {
 		enable: true,
@@ -45,11 +44,28 @@ var settings = {
 		}
 	}.check(),
 	keys: {
-		27: 'close',	// ESCAPE
-		37: 'previous',	// LEFT ARROW
-		38: 'close',	// UP ARROW
-		39: 'next',		// RIGHT ARROW
-		40: 'close'		// DOWN ARROW
+		'27': 'close',		// ESCAPE
+		'37': 'previous',	// LEFT ARROW
+		'38': 'close',		// UP ARROW
+		'39': 'next',		// RIGHT ARROW
+		'40': 'close',		// DOWN ARROW
+		'valid': function () {
+			return {
+				'close': 1,		// CLOSE
+				'previous': 1,	// PRIVIOUS
+				'next': 1,		// NEXT
+				'next-left': 1,	// PRIVIOUS
+				'next-right': 1	// NEXT
+			};
+		},
+		'check': function () {
+			for (let key in this) {
+				if (typeof this[key] === 'string' && !(this[key] in this.valid())) {
+					if (settings.debug) console.warn(`Removing unvalid keybinding: ${key}: ${this[key]}`);
+					delete this[key];
+				}
+			}
+		}
 	},
 	//create: [],
 	preview: 1,
@@ -86,6 +102,7 @@ var settings = {
 				} catch (e) { }
 			}
 		}
+		this.keys.check();
 
 		if (this.debug) {
 			console.info(this);
@@ -232,7 +249,7 @@ function open (e) {
 	element = fig.find(el => el.element == element);
 	//console.log(element);
 
-	element.element.style.width = element.size.width + 'px';
+	element.element.style.width = `${element.size.width}px`;
 
 	let div = element.element.querySelector('div'),
 		img = element.element.querySelector('img'),
@@ -246,31 +263,22 @@ function open (e) {
 		console.log(element.translate.y, viewport.scroll, window.pageYOffset, element.scale.min);
 	}
 
-	dimmer.style.transition = `opacity ${settings.transition * 1.5}ms ease-out`;
-	dimmer.style.opacity = 0;
+	dimmer.style.cssText += `
+		transition: opacity ${settings.transition * 1.5}ms ease-out;
+		opacity: 0;`;
 
-	div.style.transition = `transform ${settings.transition}ms ease-out, opacity ${settings.transition}ms ease-out`;
-	div.style.zIndex = 30;
-	div.style.backgroundColor = 'rgba(0,0,0,.7)';
+	div.style.cssText += `
+		z-index: 30;
+		transition: transform ${settings.transition}ms ease-out, opacity ${settings.transition}ms ease-out;
+		background-color: rgba(0,0,0,.7);
+		position: fixed;
+		top: ${element.position.top - viewport.getScroll() + viewport.scroll}px;
+		left: ${element.position.left}px;
+		height: ${element.size.height}px;
+		width: ${element.size.width}px;`;
 
-	if (settings.zoomMethode) {
-		div.style.position = 'fixed';
-		div.style.top = (element.position.top - viewport.getScroll() + viewport.scroll) + 'px';
-		div.style.left = element.position.left + 'px';
-	}
-	else {
-		element.element.style.position = 'relative';
-		element.element.style.overflow = 'visible';
-		div.style.position = 'absolute';
-		div.style.top = 0;
-		div.style.left = 0;
-	}
-
-	div.style.height = element.size.height + 'px';
-	div.style.width = element.size.width + 'px';
 	div.offsetHeight;
 	div.style.transform = transform;
-	//div.offsetHeight;
 
 	if (!element.element.classList.contains('video'))
 		img.setAttribute('src', src(img));
@@ -436,7 +444,7 @@ function next (e) {
 	}
 
 	// fix figure width size
-	fig[next].element.style.width = fig[next].size.width + 'px';
+	fig[next].element.style.width = `${fig[next].size.width}px`;
 
 	// set some variables
 	let nextDiv = fig[next].element.querySelector('div'),
@@ -457,7 +465,7 @@ function next (e) {
 	}
 
 	// prepare next div for transition, 0s tranistion
-	nextDiv.style.cssText = `transition: none !important;
+	nextDiv.style.cssText += `transition: none !important;
 		opacity: 0;
 		position: fixed;
 		z-index: 30;
@@ -480,17 +488,20 @@ function next (e) {
 	// replace transform->translateX value
 	let currTranslateX = parseFloat((currDiv.style.transform).match(/[\s\S]+.translate\(([-\d.]+)px[\s\S]+/)[1]) - (translateAnimation),
 		currTranslate = (currDiv.style.transform).replace(/translate\(([-\d.]+)px/g, `translate(${currTranslateX}px`);
+
 	// apply exit to current div
-	currDiv.style.transform = currTranslate;
-	currDiv.style.opacity = 0;
+	currDiv.style.cssText += `
+		transform: ${currTranslate};
+		opacity: 0`;
 
 	// apply arrive to next div
-	nextDiv.style.transform = transform;
-	nextDiv.style.opacity = 1;
+	nextDiv.style.cssText += `
+		transform: ${transform};
+		opacity: 1`;
 
 	// wait for animation and clean up
-	var timer = setTimeout(function () {
-		clearTimeout(timer);
+	let afterTransition = function () {
+		nextDiv.removeEventListener('transitionend', afterTransition, false);
 
 		if (!fig[curr].element.classList.contains('video'))
 			currImg.setAttribute('src', src(currImg));
@@ -503,7 +514,8 @@ function next (e) {
 
 		state.transitionProgress = false;
 		if (settings.debug) console.groupEnd();
-	}, settings.transition);
+	}
+	nextDiv.addEventListener('transitionend', afterTransition, false);
 
 	// url history change (next)
 	if (state.history) {
@@ -552,13 +564,13 @@ function close () {
 	controler.classList.remove('open');
 	controler.classList.add('close');
 
-	div.style.transform = '';
-	div.style.zIndex = '10';
+	div.style.cssText += `
+		transform: none;
+		z-index: 10;`;
 	figcaption.style.opacity = 0;
-	//div.style.transition = 'transform '+settings.transition+'ms ease-out, opacity '+settings.transition+'ms ease-out';
 
-	var timer = setTimeout(function () {
-		clearTimeout(timer);
+	let afterTransition = function () {
+		div.removeEventListener('transitionend', afterTransition, false);
 
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
@@ -570,7 +582,8 @@ function close () {
 
 		state.transitionProgress = false;
 		if (settings.debug) console.groupEnd();
-	}, settings.transition);
+	}
+	div.addEventListener('transitionend', afterTransition, false);
 
 	document.querySelector('html').classList.remove('lock');
 	document.querySelector('body').classList.remove('lock');
@@ -592,7 +605,7 @@ function close () {
 			eventValue: state.imgGa
 		});
 
-	// state.transitionProgress > timer
+	// state.transitionProgress > tranistionend
 }
 
 /**
@@ -604,48 +617,48 @@ function close () {
 function filter (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.filter:');
 	// dont execute on same filter
-	if (e.currentTarget.classList.contains('active') && !e.currentTarget.classList.contains('more')) {
+	let target = e.currentTarget;
+	if (target.classList.contains('active') && !target.classList.contains('more')) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
 
-	if (settings.debug) console.log(e.currentTarget);
+	if (settings.debug) console.log(target);
 
-	// get filter tag
-	var filter = e.currentTarget.getAttribute('data-filter'),
-		galerija = document.querySelector(settings.id),
-		more = galerija.querySelector('button.more');
+	// get filter tag, get active button
+	let filter = target.getAttribute('data-filter'),
+		more = document.querySelector(`${settings.id} button.more`),
+		active = target.parentNode.querySelector('button[name="filter"].active');
 
 	// more button handling
-	if (e.currentTarget.classList.contains('more') || more.getAttribute('hidden') === null) {
+	if (target.classList.contains('more') || more.getAttribute('hidden') === null) {
 		if (settings.debug) console.log('More button hidden');
 		more.setAttribute('hidden', true);
 	}
 
-	// set active filter button
-	var active = e.currentTarget.parentNode.querySelector('button[name="filter"].active');
+	// active filter button is null, set default 'all'
 	if (active === null) {
-		active = e.currentTarget.parentNode.querySelector('button[data-filter="all"]');
+		active = target.parentNode.querySelector('button[data-filter="all"]');
 	}
+	// change active filter
 	active.classList.remove('active');
-	e.currentTarget.classList.add('active');
+	target.classList.add('active');
 
 	// hide or show images
-	var figs = galerija.querySelectorAll('figure');
 	if (settings.debug) console.groupCollapsed('filter loop:');
-	for (let i = 0; i < figs.length; i++) {
+	document.querySelectorAll(`${settings.id} figure`).forEach(el => {
 		// copy data-filter atribute to variable
-		let set = figs[i].querySelector('img').getAttribute('data-filter');
+		let set = el.querySelector('img').getAttribute('data-filter');
 		if (settings.debug) console.info(`Data filter: ${set}`);
 
 		// check if filter name is in given varirable & set show/hide class
 		if (set.indexOf(filter) === -1) {
-			figs[i].classList.add('hide');
-			figs[i].classList.remove('show');
+			el.classList.add('hide');
+			el.classList.remove('show');
 		}
 		else {
-			figs[i].classList.add('show');
-			figs[i].classList.remove('hide');
+			el.classList.add('show');
+			el.classList.remove('hide');
 		}
 
 		// wait animation, than add attribute hidden
@@ -663,7 +676,7 @@ function filter (e) {
 				}
 			});
 		}, settings.transition / 2);
-	}
+	});
 	if (settings.debug) console.groupEnd();
 
 	var timer2 = setTimeout(function () {
@@ -719,7 +732,7 @@ function resize () {
 			console.info(zoom.translate.y, viewport.scroll, window.pageYOffset, zoom.scale.min);
 		}
 
-		zoom.element.querySelector('div').style.cssText = `
+		zoom.element.querySelector('div').style.cssText += `
 			position: fixed;
 			z-index: 30;
 			background-color: rgba(0,0,0,.7);
@@ -1026,8 +1039,8 @@ function position (el) {
 function translate (el) {
 	/* izračuna center slike in center viewporta, ter ju odšteje, nato pa doda še preostanek screena da je slika na sredini -- MYSTIC SHIT :P*/
 	return {
-		'x': (el.scale.y < el.scale.x ? (viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 1,
-		'y': (el.scale.y > el.scale.x ? (viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 1
+		'x': (el.scale.y < el.scale.x ? (viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 2,
+		'y': (el.scale.y > el.scale.x ? (viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 2
 	};
 }
 
