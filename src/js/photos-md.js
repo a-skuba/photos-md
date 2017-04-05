@@ -30,7 +30,7 @@ var settings = {
 		},
 		treshold: {
 			horizontal: 128,
-			vertical: 130 //72
+			vertical: 72
 		},
 		check: function () {
 			if (this.tresholdAxis.horizontal > this.treshold.horizontal) {
@@ -711,6 +711,12 @@ function resize () {
 	let section = document.querySelector(settings.id),
 		zoom = fig.find(el => el.element.classList.contains('zoom'));
 
+	if (typeof zoom !== 'undefined' && viewport.width <= 720) {
+		zoom.element.querySelector('div').removeAttribute('style');
+		zoom.element.querySelector('div').style.cssText = `transition: all 1ms;`;
+		close();
+	}
+
 	viewport.init();
 
 	// register figures
@@ -727,8 +733,6 @@ function resize () {
 	if (typeof zoom !== 'undefined') {
 		if (settings.debug) {
 			console.groupCollapsed('Zoomed:');
-
-			console.info(transform);
 			console.info(zoom.translate.y, viewport.scroll, window.pageYOffset, zoom.scale.min);
 		}
 
@@ -1039,8 +1043,8 @@ function position (el) {
 function translate (el) {
 	/* izračuna center slike in center viewporta, ter ju odšteje, nato pa doda še preostanek screena da je slika na sredini -- MYSTIC SHIT :P*/
 	return {
-		'x': (el.scale.y < el.scale.x ? (viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 2,
-		'y': (el.scale.y > el.scale.x ? (viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 2
+		'x': (el.scale.y < el.scale.x ? (viewport.width - el.size.width * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.left + el.margin.left + el.size.width / 2 * (1 - el.scale.min)) / el.scale.min) + 1,
+		'y': (el.scale.y > el.scale.x ? (viewport.height - el.size.height * el.scale.min) / (2 * el.scale.min) : 0) - ((el.position.top + el.margin.top + (el.size.height / 2) - (el.size.height / 2 * el.scale.min)) / el.scale.min) + 1
 	};
 }
 
