@@ -186,21 +186,29 @@
 				cursor: grabbing;
 			}
 
-			div {
-				//$navigation-size: 2.5em;
+			&:not(.active) div:hover {
+				opacity: 1;
+			}
 
+			div {
 				opacity: 0;
 				transition: opacity .1s ease-in-out;
+				padding: 30vh 0;
 
 				&:first-of-type {
-					padding: 30vh 30vw 30vh 0;
+					padding-right: 30vw;
 				}
 				&:last-of-type {
-					padding: 30vh 0 30vh 30vw;
+					padding-left: 30vw;
 				}
-				&:hover {
-					opacity: 1;
-					//transform: scale(1.25);
+
+				@media screen and (max-width: 425px) {
+					&:first-of-type {
+						padding-right: 20vw;
+					}
+					&:last-of-type {
+						padding-left: 20vw;
+					}
 				}
 
 				svg {

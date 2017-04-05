@@ -228,10 +228,8 @@ function open (e) {
 	state.transitionProgress = true;
 
 	if (settings.debug) { console.info('Open target:', e.currentTarget); }
-	var element = e.currentTarget;
-	for (var i = 0; i < fig.length; i++) {
-		if (element == fig[i].element) element = fig[i];
-	}
+	let element = e.currentTarget;
+	element = fig.find(el => el.element == element);
 	//console.log(element);
 
 	element.element.style.width = element.size.width + 'px';
@@ -697,36 +695,41 @@ function resize () {
 		//var start = new Date().getTime();
 	}
 
-	let section = document.querySelector(settings.id);
+	let section = document.querySelector(settings.id),
+		zoom = fig.find(el => el.element.classList.contains('zoom'));
 
 	viewport.init();
 
 	// register figures
 	section.querySelectorAll('figure:not([hidden])').forEach(el => {
+		let img = el.querySelector('div img');
+
+		img.style.width = '99.99%';
+		img.offsetWidth;
+		img.removeAttribute('style');
+
 		register(el);
 	});
 
-	if (section.querySelector('.zoom') !== null) {
-		if (settings.debug) console.groupCollapsed('Zoomed:');
-
-		let obj = fig.find(el => el.element.classList.contains('zoom'));
-
+	if (typeof zoom !== 'undefined') {
 		if (settings.debug) {
+			console.groupCollapsed('Zoomed:');
+
 			console.info(transform);
-			console.info(obj.translate.y, viewport.scroll, window.pageYOffset, obj.scale.min);
+			console.info(zoom.translate.y, viewport.scroll, window.pageYOffset, zoom.scale.min);
 		}
 
-		obj.element.querySelector('div').style.cssText = `
+		zoom.element.querySelector('div').style.cssText = `
 			position: fixed;
 			z-index: 30;
 			background-color: rgba(0,0,0,.7);
-			top: ${obj.position.top - window.pageYOffset + viewport.scroll}px;
-			left: ${obj.position.left}px;
-			height: ${obj.size.height}px;
-			width: ${obj.size.width}px;
+			top: ${zoom.position.top - window.pageYOffset + viewport.scroll}px;
+			left: ${zoom.position.left}px;
+			height: ${zoom.size.height}px;
+			width: ${zoom.size.width}px;
 			transform:
-				scale(${obj.scale.min})
-				translate(${obj.translate.x}px, ${(obj.translate.y + (window.pageYOffset - viewport.scroll) / obj.scale.min)}px);`;
+				scale(${zoom.scale.min})
+				translate(${zoom.translate.x}px, ${zoom.translate.y + (window.pageYOffset - viewport.scroll) / zoom.scale.min}px);`;
 
 		if (settings.debug) console.groupEnd();
 	}
