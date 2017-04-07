@@ -575,9 +575,7 @@ function close () {
 		if (!element.classList.contains('video'))
 			img.setAttribute('src', src(img));
 
-		[div, element, figcaption, dimmer].forEach(el => {
-			el.removeAttribute('style');
-		});
+		[div, element, figcaption, dimmer].forEach(el => el.removeAttribute('style'));
 		element.classList.remove('zoom');
 
 		state.transitionProgress = false;
@@ -647,25 +645,25 @@ function filter (e) {
 	// hide or show images
 	if (settings.debug) console.groupCollapsed('filter loop:');
 	document.querySelectorAll(`${settings.id} figure`).forEach(el => {
-		// copy data-filter atribute to variable
-		let set = el.querySelector('img').getAttribute('data-filter');
-		if (settings.debug) console.info(`Data filter: ${set}`);
+			// copy data-filter atribute to variable
+			let set = el.querySelector('img').getAttribute('data-filter');
+			if (settings.debug) console.info(`Data filter: ${set}`);
 
-		// check if filter name is in given varirable & set show/hide class
-		if (set.indexOf(filter) === -1) {
-			el.classList.add('hide');
-			el.classList.remove('show');
-		}
-		else {
-			el.classList.add('show');
-			el.classList.remove('hide');
-		}
+			// check if filter name is in given varirable & set show/hide class
+			if (set.indexOf(filter) === -1) {
+				el.classList.add('hide');
+				el.classList.remove('show');
+			}
+			else {
+				el.classList.add('show');
+				el.classList.remove('hide');
+			}
 
-		// wait animation, than add attribute hidden
-		var timer = setTimeout(function () {
-			clearTimeout(timer);
+			// wait animation, than add attribute hidden
+			var timer = setTimeout(function () {
+				clearTimeout(timer);
 
-			document.querySelectorAll(`${settings.id} figure`).forEach(fig => {
+				document.querySelectorAll(`${settings.id} figure`).forEach(fig => {
 				if (fig.classList.contains('hide')) {
 					fig.setAttribute('hidden', true);
 					fig.classList.remove('hide');
@@ -675,7 +673,7 @@ function filter (e) {
 					fig.classList.remove('show');
 				}
 			});
-		}, settings.transition / 2);
+			}, settings.transition / 2);
 	});
 	if (settings.debug) console.groupEnd();
 
@@ -1092,6 +1090,63 @@ function src (slika) {
 }
 
 /**
+ * Polyfill
+ * @private
+ * @returns bool	True on every thing is set & done, false on something is in progress or wrong
+ */
+function polyfill () {
+	if (settings.debug) console.groupCollapsed('photosMd.polyfill:')
+	// PointerEvent POLYFILL - external script
+	// Reference: https://github.com/jquery/PEP
+	if (!window.PointerEvent) {
+		if (settings.debug) console.log('Loading PointerEvent polyfill');
+		let request = new Promise(function(resolve, reject) {
+			let xhttp = new XMLHttpRequest();
+			xhttp.open('GET', 'https://code.jquery.com/pep/0.4.2/pep.min.js');
+
+			xhttp.onload = function() {
+				if (xhttp.status == 200) {
+					resolve(xhttp.response);
+				} else {
+					reject(Error(xhttp.statusText));
+				}
+			};
+			xhttp.onerror = function() {
+				reject(Error("Network Error"));
+			};
+
+			xhttp.send();
+		});
+
+		request.then(
+			response => {
+				let head = document.querySelector('head'),
+					script = document.createElement('script'),
+					code = document.createTextNode(response);
+
+				script.appendChild(code);
+				head.appendChild(script);
+
+				if (settings.debug) console.groupEnd();
+				init({});
+			},
+			error => {
+				console.warn(`Error loading PEP: ${error}`);
+				settings.pointer.enable = false;
+
+				if (settings.debug) console.groupEnd();
+				init({});
+			}
+		);
+
+		return false;
+	}
+
+	if (settings.debug) console.groupEnd();
+	return true;
+}
+
+/**
  * Initialization function
  * @public
  * @param {Object|JSON} userSettings	Settings for photosMd
@@ -1105,52 +1160,16 @@ function init (userSettings) {
 		settings.merge(userSettings);
 	}
 
+	// polyfill
+	if ((settings.pointer.enable && !window.PointerEvent) && !polyfill()) {
+		//if (!polyfill()) {
+		return;
+		//}
+	}
+
 	// postpone proces if it is not fully loaded and calculated
-	if (document.readyState !== 'complete' || (settings.pointer.enable && !window.PointerEvent)) {
+	if (document.readyState !== 'complete') {
 		if (settings.debug) console.info('Init delayed');
-
-		if (!window.PointerEvent) {
-			if (settings.debug) console.log('Loading PointerEvent polyfill');
-			// https://developers.google.com/web/fundamentals/getting-started/primers/promises#promisifying_xmlhttprequest
-
-			let request = new Promise(function(resolve, reject) {
-				let xhttp = new XMLHttpRequest();
-				xhttp.open('GET', 'https://code.jquery.com/pep/0.4.2/pep.min.js');
-
-				xhttp.onload = function() {
-					if (xhttp.status == 200) {
-						resolve(xhttp.response);
-					} else {
-						reject(Error(xhttp.statusText));
-					}
-				};
-				xhttp.onerror = function() {
-					reject(Error("Network Error"));
-				};
-
-				xhttp.send();
-			});
-
-			request.then(
-				response => {
-					let head = document.querySelector('head'),
-						script = document.createElement('script'),
-						code = document.createTextNode(response);
-
-					script.appendChild(code);
-					head.appendChild(script);
-
-					init({});
-				},
-				error => {
-					console.warn(`Error loading PEP: ${error}`);
-					settings.pointer.enable = false;
-					init({});
-				}
-			);
-
-			return;
-		}
 
 		window.addEventListener('load', function () {
 			init({});
@@ -1203,10 +1222,10 @@ function init (userSettings) {
 
 	// link blocker on figcaption>a clicks (SEO)
 	document.querySelectorAll(`${settings.id} figcaption > a`).forEach(link => {
-		link.addEventListener('click', e => {
-			e.preventDefault();
-			return false;
-		}, false);
+			link.addEventListener('click', e => {
+				e.preventDefault();
+				return false;
+			}, false);
 	});
 
 	// open image from url
