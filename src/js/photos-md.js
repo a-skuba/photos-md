@@ -1154,7 +1154,7 @@ function init (userSettings) {
 	window.addEventListener('orientationchange', resize, false);
 
 	// add pointer event listner
-	if (settings.pointer.enable && 'pointerEvents' in document.documentElement.style) {
+	if (settings.pointer.enable && window.PointerEvent) {
 		if (settings.debug) console.info('Pointer event support.');
 		document.querySelector('.galerija-arrows').addEventListener('pointerdown', pointerStart, false);
 		document.querySelector('.galerija-arrows').addEventListener('pointerup', pointerEnd, false);
