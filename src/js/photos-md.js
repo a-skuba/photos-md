@@ -238,7 +238,7 @@ function video (fig) {
 function open (e) {
 	if (settings.debug) console.groupCollapsed('photosMd.open:');
 
-	if (state.transitionProgress) {
+	if (state.transitionProgress || document.querySelector(`${settings.id} .zoom`) !== null) {
 		if (settings.debug) console.groupEnd();
 		return;
 	}
