@@ -326,10 +326,11 @@
 	footer {
 		width: 100%;
 		padding-top: 2rem;
-		@include flexie(row wrap, center, center);
+		@include flexie(column wrap, center, center);
 
 		button {
 			padding: 8px 15px;
+			margin: 0 0 .5rem;
 
 			border: none;
 			border-radius: 3px;
