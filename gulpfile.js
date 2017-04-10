@@ -10,7 +10,7 @@
 var gulp = require('gulp'),
     browserSync = require('browser-sync').create(),
     autoprefixer = require('gulp-autoprefixer'),
-    ftp = require('gulp-ftp'),
+    ftp = require('vinyl-ftp'),
     del = require('del'),
     plumber = require('gulp-plumber'),
     babel = require('gulp-babel'),
@@ -20,7 +20,7 @@ var gulp = require('gulp'),
     minify = require('gulp-minify'),
     sass = require('gulp-sass');
 
-var ftpData = require('./ftp.json');
+var conf = require('./conf.json');
 
 // SASS
 gulp.task('sass', function () {
@@ -31,7 +31,6 @@ gulp.task('sass', function () {
             outputStyle: 'compressed',  // nested, expanded, compact, compressed
         }))
         .pipe(autoprefixer(['last 3 versions', '> 1% in SI']))
-        //.pipe(ftp(ftpData))
         .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
@@ -98,8 +97,15 @@ gulp.task('serve', ['dev', 'server']);
 gulp.task('build', ['js', 'sass', 'svg']);
 // UPLOAD
 gulp.task('upload', ['demo'], function () {
-    return gulp.src('demo/**/*')
-        .pipe(ftp(ftpData));
+    let conn = ftp.create(conf.ftp);
+
+    return gulp.src(conf.ftp.src)
+        .pipe(conn.newerOrDifferentSize(conf.ftp.remotePath))
+        .pipe(conn.dest(conf.ftp.remotePath));
+});
+// LIVE
+gulp.task('live', ['upload'], function () {
+    gulp.watch(['src/**/*', 'demo/**/*.?(jpg|html|php)'], ['upload']);
 });
 
 // DEMO
@@ -119,9 +125,9 @@ gulp.task('server', function () {
             "dist/**/*.?(css|js|png|jpeg|jpg)",
             "*.?(php|html)"
         ],
-        proxy: "http://pmd.dev/",
+        proxy: conf.bs.proxy,
         logFileChanges: true,
-        browser: ["chrome", "firefox"],
+        browser: conf.bs.browser,
         injectChanges: true,
         notify: true,
         startPath: "?debug"

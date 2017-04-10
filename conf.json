@@ -1,0 +1,17 @@
+{
+    "ftp": {
+        "host": "host",
+        "user": "user",
+        "pass": "pass",
+        "port": 21,
+        "parallel": 5,
+        "remotePath": "/",
+        "src": [
+            "demo/**/*"
+        ]
+    },
+    "bs": {
+        "proxy": "http://pmd.dev/",
+        "browser": ["chrome", "firefox"]
+    }
+}
