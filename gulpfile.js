@@ -97,7 +97,7 @@ gulp.task('serve', ['dev', 'server']);
 gulp.task('build', ['js', 'sass', 'svg']);
 // UPLOAD
 gulp.task('upload', ['demo'], function () {
-    let conn = ftp.create(conf.ftp);
+    let conn = ftp.create(conf.ftp.conn);
 
     return gulp.src(conf.ftp.src)
         .pipe(conn.newerOrDifferentSize(conf.ftp.remotePath))
@@ -136,19 +136,10 @@ gulp.task('server', function () {
 
 // CLEAN
 gulp.task('clean', function () {
+    ftp.create(conf.ftp.conn).rmdir(conf.ftp.remotePath, x=>{ console.log('Deleted from remote'); });
+
     return del([
-        'dist/*.css',
-        'dist/*.js',
-        'dist/*.map',
-        'dist/*.svg'
-    ]);
-});
-// CLEAN-DEMO
-gulp.task('clean-all', function () {
-    return del([
-        'demo/assets/*.css',
-        'demo/assets/*.js',
-        'demo/assets/*.map',
-        'demo/assets/*.svg'
+        'dist/*.?(css|js|map|svg)',
+        'demo/assets/*.?(css|js|map|svg)',
     ]);
 });

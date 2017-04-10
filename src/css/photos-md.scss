@@ -270,11 +270,14 @@
 			object-position: center;
 			// Safari blurry images fix
 			// queries: https://browserstrangeness.bitbucket.io/css_hacks.html#safari
+			// one-liner: @media not all and (min-resolution:.001dpcm),screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0){@media{#galerija figure.zoom img{-webkit-backface-visibility:hidden;backface-visibility:hidden;transform:translateZ(0) scale(1, 1)}}}
 			@media
-				screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0),
-				not all and (min-resolution:.001dpcm) {
+				not all and (min-resolution:.001dpcm),
+				screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0) {
+				// @media {
 					backface-visibility: hidden;
 					transform: translateZ(0) scale(1.0, 1.0);
+				//}
 			}
 		}
 

@@ -1,10 +1,13 @@
 {
     "ftp": {
-        "host": "host",
-        "user": "user",
-        "pass": "pass",
-        "port": 21,
-        "parallel": 5,
+        "conn": {
+            "host": "host",
+            "user": "user",
+            "pass": "pass",
+            "port": 21,
+            "parallel": 5,
+            "maxConnections": 5
+        },
         "remotePath": "/",
         "src": [
             "demo/**/*"
