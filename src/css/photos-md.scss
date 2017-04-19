@@ -269,8 +269,13 @@
 			object-fit: contain;
 			object-position: center;
 			// Safari blurry images fix
-			backface-visibility: hidden;
-			transform: translateZ(0) scale(1.0, 1.0);
+			// queries: https://browserstrangeness.bitbucket.io/css_hacks.html#safari
+			@media
+				screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0),
+				not all and (min-resolution:.001dpcm) {
+					backface-visibility: hidden;
+					transform: translateZ(0) scale(1.0, 1.0);
+			}
 		}
 
 		&.zoom figcaption {

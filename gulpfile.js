@@ -31,7 +31,7 @@ gulp.task('sass', function () {
             errLogToConsole: true,      // log to console
             outputStyle: 'compressed',  // nested, expanded, compact, compressed
         }))
-        .pipe(autoprefixer(['last 3 versions', '> 1% in SI']))
+        .pipe(autoprefixer(['last 4 versions', '> 1% in SI']))
         //.pipe(ftp(ftpData))
         .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
@@ -48,7 +48,7 @@ gulp.task('js', function () {
             "presets": [
                 ["env", {
                     "targets": {
-                        "browsers": ['last 2 versions', 'safari >= 7']
+                        "browsers": ['last 4 versions', 'safari >= 7', '> 1% in SI']
                     },
                     "modules": "umd",
                     //"include": ['transform-es2015-modules-umd']
@@ -119,11 +119,12 @@ gulp.task('server', function () {
             "dist/**/*.?(css|js|png|jpeg|jpg)",
             "*.?(php|html)"
         ],
-        proxy: "http://pmd.anej/",
+        proxy: "http://pmd.dev/",
         logFileChanges: true,
-        browser: ["chrome"],
+        browser: ["chrome", "firefox"],
         injectChanges: true,
-        //startPath: "/demo"
+        notify: true,
+        startPath: "?debug"
     });
 });
 
