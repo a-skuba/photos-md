@@ -98,13 +98,13 @@
 		</figure>
 		<footer>
 			<button class="more" name="filter" data-filter="all">Prikaži vse slike..</button>
-			<button class="more" onclick="window.location.reload(1);">refresh</button>
+			<!--<button class="more" onclick="window.location.reload(1);">refresh</button>-->
 		</footer>
 	</section>
 	<script>
 		photosMd.init({
 			'id': '#galerija',
-			'debug': <?= isset($_GET['debug']) ? 1 : 0 ?>,
+			'debug': 0,
 			'preview': 0,
 			'transition': 400
 		});

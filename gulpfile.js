@@ -18,6 +18,7 @@ var gulp = require('gulp'),
     svgstore = require('gulp-svgstore'),
     svgmin = require('gulp-svgmin'),
     minify = require('gulp-minify'),
+    stripDebug = require('gulp-strip-debug'),
     sass = require('gulp-sass');
 
 var ftpData = require('./ftp.json');
@@ -70,7 +71,6 @@ gulp.task('js', function () {
         .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
-
 
 // SVG
 gulp.task('svg', function () {
@@ -137,7 +137,7 @@ gulp.task('clean', function () {
     ]);
 });
 // CLEAN-DEMO
-gulp.task('clean-all', function () {
+gulp.task('clean-all', ['clean'], function () {
     return del([
         'demo/assets/*.css',
         'demo/assets/*.js',
