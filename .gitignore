@@ -10,6 +10,7 @@
 /demo/assets/*
 !/demo/assets/*.jpg
 /dist
+atv5Xw/**/*
 conf.json
 .vscode/chrome
 
