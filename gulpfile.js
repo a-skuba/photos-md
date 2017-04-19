@@ -18,6 +18,7 @@ var gulp = require('gulp'),
     svgstore = require('gulp-svgstore'),
     svgmin = require('gulp-svgmin'),
     minify = require('gulp-minify'),
+    stripDebug = require('gulp-strip-debug'),
     sass = require('gulp-sass');
 
 var conf = require('./conf.json');
@@ -30,7 +31,7 @@ gulp.task('sass', function () {
             errLogToConsole: true,      // log to console
             outputStyle: 'compressed',  // nested, expanded, compact, compressed
         }))
-        .pipe(autoprefixer(['last 3 versions', '> 1% in SI']))
+        .pipe(autoprefixer(['last 4 versions', '> 1% in SI']))
         .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
@@ -46,7 +47,7 @@ gulp.task('js', function () {
             "presets": [
                 ["env", {
                     "targets": {
-                        "browsers": ['last 3 versions', 'safari >= 7', '> 1% in SI']
+                        "browsers": ['last 4 versions', 'safari >= 7', '> 1% in SI']
                     },
                     "modules": "umd",
                     //"include": ['transform-es2015-modules-umd']
@@ -69,7 +70,6 @@ gulp.task('js', function () {
         .pipe(plumber.stop())
         .pipe(gulp.dest('dist'));
 });
-
 
 // SVG
 gulp.task('svg', function () {

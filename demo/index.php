@@ -106,7 +106,7 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
     <script>
         photosMd.init({
             'id': '#galerija',
-            'debug': <?= isset($_GET['debug']) ? 1 : 0 ?>,
+            'debug': 0,
             'preview': 0,
             'transition': 400
         });

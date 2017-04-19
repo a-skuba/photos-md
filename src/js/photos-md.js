@@ -706,6 +706,10 @@ function resize () {
 		//var start = new Date().getTime();
 	}
 
+	if (pointer.started !== false) {
+		pointerEnd();
+	}
+
 	let section = document.querySelector(settings.id),
 		zoom = fig.find(el => el.element.classList.contains('zoom'));
 
@@ -746,6 +750,7 @@ function resize () {
 				scale(${zoom.scale.min})
 				translate(${zoom.translate.x}px, ${zoom.translate.y + (window.pageYOffset - viewport.scroll) / zoom.scale.min}px);`;
 
+		//zoom.element.querySelector('div').offsetHeight;
 		if (settings.debug) console.groupEnd();
 	}
 
@@ -1162,9 +1167,7 @@ function init (userSettings) {
 
 	// polyfill
 	if ((settings.pointer.enable && !window.PointerEvent) && !polyfill()) {
-		//if (!polyfill()) {
 		return;
-		//}
 	}
 
 	// postpone proces if it is not fully loaded and calculated
