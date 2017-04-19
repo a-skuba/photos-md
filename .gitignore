@@ -10,7 +10,7 @@
 /demo/assets/*
 !/demo/assets/*.jpg
 /dist
-ftp.json
+conf.json
 .vscode/chrome
 
 # OS generated files #

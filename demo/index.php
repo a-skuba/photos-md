@@ -1,13 +1,13 @@
 <?php
 // HOST
 if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
-    define('HOST', 'localhost');
+    define('HOST', 'pmd.localhost');
 } elseif (strpos($_SERVER['HTTP_HOST'], 'anej') !== false) {
-    define('HOST', 'anej');
+    define('HOST', 'pmd.anej');
 } elseif (strpos($_SERVER['HTTP_HOST'], 'dev') !== false) {
-    define('HOST', 'dev');
+    define('HOST', 'pmd.dev');
 } else {
-    define('HOST', 'skuba-buba.com');
+    define('HOST', 'www.skuba-buba.com/share/photos-md');
 }
 ?>
 <!DOCTYPE html>
@@ -71,36 +71,36 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
             </div>
         </div>
         <figure>
-            <div><img src="http://pmd.<?= HOST ?>/assets/01.jpg" data-filter="all sth1" /></div>
+            <div><img src="http://<?= HOST ?>/assets/01.jpg" data-filter="all sth1" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=01.jpg">Beautiful view</a></figcaption>
         </figure>
         <figure>
-            <div><img src="http://pmd.<?= HOST ?>/assets/02.jpg" data-filter="all sth1" /></div>
+            <div><img src="http://<?= HOST ?>/assets/02.jpg" data-filter="all sth1" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=02.jpg">City</a></figcaption>
         </figure>
         <figure>
-            <div><img src="http://pmd.<?= HOST ?>/assets/03.jpg" data-filter="all sth1" /></div>
+            <div><img src="http://<?= HOST ?>/assets/03.jpg" data-filter="all sth1" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=03.jpg">Lights</a></figcaption>
         </figure>
         <figure hidden="hidden">
-            <div><img src="http://pmd.<?= HOST ?>/assets/04.jpg" data-filter="all sth1 sth2" /></div>
+            <div><img src="http://<?= HOST ?>/assets/04.jpg" data-filter="all sth1 sth2" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=04.jpg">Beach</a></figcaption>
         </figure>
         <figure hidden="hidden">
-            <div><img src="http://pmd.<?= HOST ?>/assets/05.jpg" data-filter="all sth2" /></div>
+            <div><img src="http://<?= HOST ?>/assets/05.jpg" data-filter="all sth2" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=05.jpg">Mountains</a></figcaption>
         </figure>
         <figure hidden="hidden">
-            <div><img src="http://pmd.<?= HOST ?>/assets/06.jpg" data-filter="all sth2" /></div>
+            <div><img src="http://<?= HOST ?>/assets/06.jpg" data-filter="all sth2" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=06.jpg">Dude</a></figcaption>
         </figure>
         <figure hidden="hidden">
-            <div><img src="http://pmd.<?= HOST ?>/assets/07.jpg" data-filter="all sth2" /></div>
+            <div><img src="http://<?= HOST ?>/assets/07.jpg" data-filter="all sth2" /></div>
             <figcaption><a rel="nofollow" rel="noreferrer" href="?p=07.jpg">Forest</a></figcaption>
         </figure>
         <footer>
             <button class="more" name="filter" data-filter="all">Prikaži vse slike..</button>
-            <!--<button class="more" onclick="window.location.reload(1);">refresh</button>-->
+            <button class="refresh" onclick="window.location.reload(1);">refresh</button>
         </footer>
     </section>
     <script>
