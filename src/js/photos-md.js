@@ -1151,6 +1151,48 @@ function polyfill () {
 	return true;
 }
 
+function sentry () {
+    let request = new Promise(function(resolve, reject) {
+        let xhttp = new XMLHttpRequest();
+        xhttp.open('GET', 'https://cdn.ravenjs.com/3.14.2/raven.min.js');
+
+        xhttp.onload = function() {
+            if (xhttp.status == 200) {
+                resolve(xhttp.response);
+            } else {
+                reject(Error(xhttp.statusText));
+            }
+        };
+        xhttp.onerror = function() {
+            reject(Error("Network Error"));
+        };
+
+        xhttp.send();
+    });
+
+    request.then(
+        response => {
+            let head = document.querySelector('head'),
+                script = document.createElement('script'),
+                code = document.createTextNode(response);
+
+            script.appendChild(code);
+            head.appendChild(script);
+            Raven.config('https://7779c0d1cc3c45e59587f3245457c8db@sentry.io/164400', {
+                release: 'test0',
+                environment: 'test'
+            }).install();
+            init({});
+        },
+        error => {
+            console.warn(`Error loading Sentry: ${error}`);
+            init({});
+        }
+    );
+
+    return false;
+}
+
 /**
  * Initialization function
  * @public
@@ -1169,6 +1211,11 @@ function init (userSettings) {
 	if ((settings.pointer.enable && !window.PointerEvent) && !polyfill()) {
 		return;
 	}
+    // sentry debug
+    if (typeof Raven == 'undefined' && !sentry()) {
+        return;
+    }
+    Raven.captureException('Broken!');
 
 	// postpone proces if it is not fully loaded and calculated
 	if (document.readyState !== 'complete') {
