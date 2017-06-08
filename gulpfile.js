@@ -97,7 +97,7 @@ gulp.task('serve', ['dev', 'server']);
 gulp.task('build', ['js', 'sass', 'svg']);
 // UPLOAD
 gulp.task('upload', ['demo'], function () {
-    let conn = ftp.create(conf.ftp.conn);
+    var conn = ftp.create(conf.ftp.conn);
 
     return gulp.src(conf.ftp.src)
         .pipe(conn.newerOrDifferentSize(conf.ftp.remotePath))

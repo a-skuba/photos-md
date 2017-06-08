@@ -60,7 +60,10 @@ var settings = {
 		},
 		'check': function () {
 			for (let key in this) {
-				if (typeof this[key] === 'string' && !(this[key] in this.valid())) {
+				if ((typeof this[key] === 'string'
+					&& !(this[key] in this.valid()))
+					|| (key < 0 && key > 255)
+				) {
 					if (settings.debug) console.warn(`Removing unvalid keybinding: ${key}: ${this[key]}`);
 					delete this[key];
 				}
@@ -68,7 +71,13 @@ var settings = {
 		}
 	},
 	//create: [],
-	preview: 1,
+	images: {	// regexp for preview and full image
+		'preview': 'preview',
+		'full': 'full',
+		'pattern': function () {
+			return new RegExp(`(${this.preview}|${this.full})\/([\\s\\S]+)`);
+		}
+	},
 	// MERGE settings
 	merge: function (userSettings) {
 		// TO DO: recursivly merge; run check function if present
@@ -79,19 +88,23 @@ var settings = {
 		if (this.debug) console.groupCollapsed('photosMd.settings.merge:');
 		if (this.debug) console.warn('photosMd.settings.merge: TO DO: recursivly merge; run check function if present');
 
-		// spin through array and merge one by one
+		// merge
 		for (let key in userSettings) {
-
 			// test if both has the key property
 			if (userSettings.hasOwnProperty(key) && this.hasOwnProperty(key)) {
-
 				// test for id
 				if (key == 'id' && userSettings.id.search('#') < 0) {
 					console.warn('photos-md: (No # in ID. ID has to be unique. Only one instance per object.)');
 					//break;
+				} else if (typeof userSettings[key] === 'object') {
+					// recursive object merge
+					this.key = this.mergeProp(userSettings[key], this[key])
+				} else if (typeof this[key] !== 'object'
+					&& typeof this[key] !== 'function'
+				) {
+					// merge
+					this[key] = userSettings[key];
 				}
-				// merge
-				this[key] = userSettings[key];
 
 				if (this.debug) console.info(key + ' merged');
 			}
@@ -108,6 +121,31 @@ var settings = {
 			console.info(this);
 			console.groupEnd();
 		}
+	},
+	mergeProp: function (user, sett) {
+		for (let prop in user) {
+			if (user.hasOwnProperty(prop)
+				&& sett.hasOwnProperty(prop)
+			) {
+				if (typeof user[prop] === 'object') {
+					// recursive call
+					sett[prop] = this.mergeProp(user[prop], sett[prop]);
+				} else if (typeof user[prop] !== 'function'
+						&& typeof sett[prop] !== 'function'
+				) {
+					// merge
+					sett[prop] = user[prop];
+					if (this.debug) console.info(`${key} merged`);
+				}
+			} else {
+				// invalid key
+				try {
+					console.warn(`photosMd.settings.merge: (Unvalid user-settings: ${key})`);
+				} catch (e) { }
+			}
+		}
+
+		return sett;
 	}
 };
 
@@ -151,28 +189,19 @@ var fig = [];
  * Holds images in buffer once fetched
  */
 var imgsBuffer = {
-	'preview': {},
-	'full': {},
+	'buffer': {},
 	'add': function (src) {
-		// determine for which array it is
-		if (src.search('/preview/') > 0) {
-			var size = 'preview';
-		}
-		if (src.search('/full/') > 0) {
-			var size = 'full';
-		}
+		// get name identifier
+		//let pattern = new RegExp(`(?:${settings.images.preview}|${settings.images.full})([\\s\\S]+)`),
+		let name = src.match(settings.images.pattern())[0];
 
-		// get only name of image
-		var name = src.slice(src.lastIndexOf('/') + 1, src.length);
 		//check if it dosent exists already
-		if (!this[size].hasOwnProperty(name)) {
+		if (!this.buffer.hasOwnProperty(name)) {
 			// create image object and add it to array
-			var img = new Image();
+			let img = new Image();
 			img.src = src;
-			this[size][name] = img;
+			this.buffer[name] = img;
 		}
-
-		return this;
 	}
 };
 
@@ -221,14 +250,14 @@ var pointer = {
  * @private
  * @param {Element} fig	The element to operate..
  */
-function video (fig) {
+/*function video (fig) {
 	// further development
 	if (settings.debug) {
 		console.groupCollapsed('photosMd.video:');
 		console.warn(fig);
 		console.groupEnd();
 	}
-}
+}*/
 
 /**
  * Open image in full screen
@@ -245,9 +274,7 @@ function open (e) {
 	state.transitionProgress = true;
 
 	if (settings.debug) { console.info('Open target:', e.currentTarget); }
-	let element = e.currentTarget;
-	element = fig.find(el => el.element == element);
-	//console.log(element);
+	let element = fig.find(el => el.element == e.currentTarget);
 
 	element.element.style.width = `${element.size.width}px`;
 
@@ -290,8 +317,8 @@ function open (e) {
 	controler.classList.remove('close');
 	controler.classList.add('open');
 
-	if (element.element.classList.contains('video'))
-		video(element);
+	/*if (element.element.classList.contains('video'))
+		video(element);*/
 
 	element.element.classList.add('zoom');
 	document.querySelector('html').classList.add('lock');
@@ -1060,7 +1087,7 @@ function translate (el) {
 function src (slika) {
 	if (settings.debug) console.groupCollapsed('photosMd.src:');
 	// no preview settings
-	if (!settings.preview) {
+	if (settings.images.preview == settings.images.full) {
 		if (settings.debug) {
 			console.info('No preview images (settings).');
 			console.groupEnd();
@@ -1069,20 +1096,18 @@ function src (slika) {
 	}
 
 	// get src string
-	var src = slika.getAttribute('src');
+	let src = slika.getAttribute('src');
 	if (settings.debug) console.info(`Old: ${src}`);
 
 	// add it to buffer
 	imgsBuffer.add(src);
 
 	// change full <-> preview
-	if (src.search('/preview/') > 0) {
-		src = src.replace('preview', 'full');
-	}
-	else if (src.search('/full/') > 0) {
-		src = src.replace('full', 'preview');
-	}
-	else {
+	if (src.match(RegExp(settings.images.preview)) != null) {
+		src = src.replace(settings.images.pattern(), `${settings.images.full}/$2`);
+	} else if (src.match(RegExp(settings.images.full)) != null) {
+		src = src.replace(settings.images.pattern(), `${settings.images.preview}/$2`);
+	} else {
 		return 0;
 	}
 	if (settings.debug) console.info(`New: ${src}`);

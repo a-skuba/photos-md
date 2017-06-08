@@ -107,7 +107,10 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
         photosMd.init({
             'id': '#galerija',
             'debug': 0,
-            'preview': 0,
+            'images': {
+                'preview': '',
+                'full': ''
+            },
             'transition': 400
         });
     </script>
