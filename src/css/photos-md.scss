@@ -117,12 +117,19 @@
 		}
 	}
 
+	.galerija-dimmer {
+		background-color: #000;
+		z-index: 30;
+	}
+
 	.galerija-dimmer, .galerija-controler {
+		will-change: opacity, position, z-index;
 		&.close {
 			@include hidden;
 		}
 
 		&.open {
+			opacity: 1;
 			position: fixed;
 			top: 0;
 			left: 0;
@@ -133,16 +140,13 @@
 		}
 	}
 
-	.galerija-dimmer.open {
-		background-color: #000;
-		//opacity: .9;
-		z-index: 30;
-	}
-
-	.galerija-controler.open {
-		z-index: 40;
+	.galerija-controler {
 		touch-action: none;
 		@include flexie(column nowrap, flex-start, center);
+
+		&.open {
+			z-index: 40;
+		}
 
 		.galerija-header {
 			flex: 0 1 $zoom-header-size;
@@ -294,6 +298,9 @@
 			height: 100%;
 			margin: 0;
 			padding: 0;
+			//z-index: 30;
+			background-color: rgba(0, 0, 0, 0.7);
+			will-change: transform, position, top, left, height, width, z-index;
 		}
 
 		img {

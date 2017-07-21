@@ -590,13 +590,14 @@ function close () {
 	dimmer.classList.add('close');
 	controler.classList.remove('open');
 	controler.classList.add('close');
+	controler.removeAttribute('style');
 
 	div.style.cssText += `
 		transform: none;
 		z-index: 10;`;
 	figcaption.style.opacity = 0;
 
-	let afterTransition = function () {
+	let afterTransition = () => {
 		div.removeEventListener('transitionend', afterTransition, false);
 
 		if (!element.classList.contains('video'))
