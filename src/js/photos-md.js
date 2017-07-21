@@ -26,11 +26,11 @@ var settings = {
 		enable: true,
 		tresholdAxis: {
 			horizontal: 100,
-			vertical: 30
+			vertical: 90
 		},
 		treshold: {
 			horizontal: 128,
-			vertical: 72
+			vertical: 220
 		},
 		check: function () {
 			if (this.tresholdAxis.horizontal > this.treshold.horizontal) {
@@ -900,6 +900,8 @@ function pointerMove(e) {
 	let move = {
 		x: pointer.start.x - e.clientX,
 		y: pointer.start.y - e.clientY,
+		offsetX: 0,
+		offsetY: 0,
 		calcPath: function () {
 			this.xPath = Math.abs(this.x);
 			this.yPath = Math.abs(this.y);
@@ -926,33 +928,72 @@ function pointerMove(e) {
 		}
 	}
 
-	let translate = {
-		x: pointer.target.translate.x,
-		y: pointer.target.translate.y + (viewport.getScroll() - viewport.scroll) / pointer.target.scale.min,
-		opacity: 1
+	if (pointer.axis == 'vertical') {
+		if ((viewport.width > viewport.height
+			&& pointer.target.size.width > pointer.target.size.height)
+			|| (viewport.width > viewport.height
+			&& pointer.target.size.width < pointer.target.size.height)
+		) {
+			move.offsetX = 100;
+		} else if (viewport.width < viewport.height
+			&& pointer.target.size.width < pointer.target.size.height
+		) {
+			move.offsetY = 100;
+		}
+	}
+
+	let tmp = {
+		size: {
+			width: pointer.target.size.width,
+			height: pointer.target.size.height
+		},
+		position: {
+			left: pointer.target.position.left,
+			top: pointer.target.position.top
+		},
+		margin: {
+			left: pointer.target.margin.left,
+			top: pointer.target.margin.top
+		},
+		scale: {
+			x: viewport.width / (pointer.target.size.width + move.offsetX),
+			y: viewport.height / (pointer.target.size.height + move.offsetY),
+			min: 0
+		}
 	};
+
+	console.log(move.offsetX, move.offsetY);
+
+	tmp.scale.min = Math.min(tmp.scale.y, tmp.scale.x);
+	tmp.translate = translate(tmp);
+	tmp.translate = {
+		x: tmp.translate.x + (move.offsetX != 0 ? (move.offsetX / tmp.scale.min) : 0),
+		y: tmp.translate.y + (move.offsetY != 0 ? (move.offsetY / tmp.scale.min) : 0) + (viewport.getScroll() - viewport.scroll) / tmp.scale.min,
+		opacity: 1
+	}
+
+	//console.log(tmp);
 
 	// move image with pointer
 	if (pointer.axis == 'horizontal') {
-		translate.x -= move.x / pointer.target.scale.min;
+		tmp.translate.x -= move.x / pointer.target.scale.min;
 	} else if (pointer.axis == 'vertical') {
-		translate.x -= move.x / pointer.target.scale.min;
-		translate.y -= move.y / pointer.target.scale.min;
+		tmp.translate.x -= move.x / pointer.target.scale.min;
+		tmp.translate.y -= move.y / pointer.target.scale.min;
 
-		translate.opacity -= Math.max(0, Math.min(1, move.yPath / settings.pointer.treshold.vertical));
-		//translate.scale += Math.max(0, Math.min(1, move.yPath / settings.pointer.treshold.vertical));
-		//(move.yPath - settings.pointer.tresholdAxis.vertical) / (settings.pointer.treshold.vertical - settings.pointer.tresholdAxis.vertical)
+		tmp.translate.opacity -= Math.max(0, Math.min(1, move.yPath / settings.pointer.treshold.vertical));
 
 		// fade blackout (use scale)
 		document.querySelectorAll('.galerija-dimmer.open, .galerija-controler.open')
-			.forEach(el => el.style.opacity = translate.opacity);
+			.forEach(el => el.style.opacity = tmp.translate.opacity);
 	} else {
-		translate.x -= move.x / pointer.target.scale.min;
-		translate.y -= move.y / pointer.target.scale.min;
+		tmp.translate.x -= move.x / pointer.target.scale.min;
+		tmp.translate.y -= move.y / pointer.target.scale.min;
 	}
 	// update image position (translate)
 	pointer.target.element.querySelector('div')
-		.style.transform = `scale(${pointer.target.scale.min}) translate(${translate.x}px, ${translate.y}px)`;
+		.style.transform = `scale(${tmp.scale.min}) translate(${tmp.translate.x}px, ${tmp.translate.y}px)`;
+	tmp = null;
 
 	if (settings.debug) console.groupEnd();
 }
